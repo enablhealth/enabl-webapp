@@ -1,0 +1,27 @@
+# AWS App Runner Configuration for Enabl Health
+# This file enables zero-downtime deployments with minimal configuration
+
+version: 1.0
+runtime: nodejs18
+build:
+  commands:
+    build:
+      - echo "Building Enabl Health application..."
+      - npm ci
+      - npm run build
+      - echo "Build completed successfully"
+run:
+  runtime-version: 18
+  command: npm start
+  network:
+    port: 3000
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: NEXT_PUBLIC_APP_ENV
+      value: "production"
+    - name: NEXT_PUBLIC_APP_URL
+      value: "https://enabl.health"
+    # Environment variables will be configured in App Runner console
+    # for security (Cognito IDs, API keys, etc.)

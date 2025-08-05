@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy:dev": "make deploy-dev",
+    "deploy:prod": "make deploy-prod",
+    "create:dev-service": "make create-dev-service",
+    "create:prod-service": "make create-prod-service"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.11.2",

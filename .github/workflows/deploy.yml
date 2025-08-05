@@ -1,0 +1,56 @@
+name: Deploy to AWS App Runner
+
+# Trigger deployment on push to main (production) or development branches
+on:
+  push:
+    branches: [main, development]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+        
+    - name: Deploy to Development
+      if: github.ref == 'refs/heads/development'
+      run: |
+        echo "🚀 Deploying to Development Environment"
+        SERVICE_ARN=$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-dev`].ServiceArn' --output text)
+        if [ -n "$SERVICE_ARN" ]; then
+          aws apprunner start-deployment --service-arn $SERVICE_ARN
+          echo "✅ Development deployment started"
+        else
+          echo "❌ Development service not found. Please create it first."
+          exit 1
+        fi
+        
+    - name: Deploy to Production
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "🚀 Deploying to Production Environment"
+        SERVICE_ARN=$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-prod`].ServiceArn' --output text)
+        if [ -n "$SERVICE_ARN" ]; then
+          aws apprunner start-deployment --service-arn $SERVICE_ARN
+          echo "✅ Production deployment started"
+        else
+          echo "❌ Production service not found. Please create it first."
+          exit 1
+        fi
+        
+    - name: Notify deployment status
+      run: |
+        BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        ENVIRONMENT=$([ "$BRANCH_NAME" = "main" ] && echo "Production" || echo "Development")
+        echo "🎉 $ENVIRONMENT deployment initiated for Enabl Health"
+        echo "📍 Branch: $BRANCH_NAME"
+        echo "🔗 Monitor deployment in AWS App Runner console"
