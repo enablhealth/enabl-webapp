@@ -6,8 +6,9 @@ runtime: nodejs18
 build:
   commands:
     build:
-      - echo "Building Enabl Health application..."
+      - echo "Installing dependencies..."
       - npm ci
+      - echo "Building Next.js application..."
       - npm run build
       - echo "Build completed successfully"
 run:
@@ -19,9 +20,3 @@ run:
   env:
     - name: NODE_ENV
       value: "production"
-    - name: NEXT_PUBLIC_APP_ENV
-      value: "production"
-    - name: NEXT_PUBLIC_APP_URL
-      value: "https://enabl.health"
-    # Environment variables will be configured in App Runner console
-    # for security (Cognito IDs, API keys, etc.)
