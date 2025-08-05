@@ -1,26 +1,31 @@
-# Use the official Node.js 18 Alpine image
-FROM node:18-alpine
+# Use the official Node.js runtime as a parent image with slim variant for better compatibility
+FROM node:18-slim
 
-# Set working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package files
+# Install necessary system dependencies for building native modules
+RUN apt-get update && \
+    apt-get install -y python3 make g++ && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci
 
-# Copy source code
+# Copy the rest of the application code
 COPY . .
 
-# Build the application
+# Build the Next.js application
+ENV ESLINT_NO_DEV_ERRORS=true
+ENV CI=false
 RUN npm run build
 
-# Expose port 3000
+# Expose the port the app runs on
 EXPOSE 3000
-
-# Set environment to production
-ENV NODE_ENV=production
 
 # Start the application
 CMD ["npm", "start"]

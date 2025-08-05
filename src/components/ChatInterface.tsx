@@ -227,7 +227,7 @@ export default function ChatInterface() {
     setTimeout(() => {
       const agentName = selectedAgent ? agents.find(a => a.id === selectedAgent)?.name : 'Enabl';
       const selectedModelData = aiModels.find(m => m.id === selectedModel);
-      let modelName = selectedModelData?.name || 'AI Assistant';
+      const modelName = selectedModelData?.name || 'AI Assistant';
       
       // If "Best" is selected, use Amazon Titan under the hood
       const actualModel = selectedModel === 'best-enabl' ? 'Amazon Titan' : modelName;
