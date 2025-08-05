@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import LoginModal from './LoginModal';
 import UserMenu from './UserMenu';
 import AccountSettingsModal from './AccountSettingsModal';

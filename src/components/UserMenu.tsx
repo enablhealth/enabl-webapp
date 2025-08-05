@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UserMenuProps {
   onAccountSettings: () => void;
@@ -9,13 +9,17 @@ interface UserMenuProps {
 
 export default function UserMenu({ onAccountSettings }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   if (!user) return null;
 
-  const handleLogout = () => {
-    logout();
-    setIsOpen(false);
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleAccountSettings = () => {
@@ -30,16 +34,16 @@ export default function UserMenu({ onAccountSettings }: UserMenuProps) {
         className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
         <img
-          src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=3b82f6&color=fff`}
-          alt={user.name || 'User'}
+          src={`https://ui-avatars.com/api/?name=${(user.given_name || '') + ' ' + (user.family_name || '')}&background=3b82f6&color=fff`}
+          alt={`${user.given_name || ''} ${user.family_name || ''}`}
           className="w-8 h-8 rounded-full"
         />
         <div className="text-left hidden sm:block">
           <div className="text-sm font-medium text-gray-900 dark:text-white">
-            {user.name || 'User'}
+            {user.given_name && user.family_name ? `${user.given_name} ${user.family_name}` : user.username}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {user.isGuest ? 'Guest' : user.email}
+            {user.email || user.username}
           </div>
         </div>
         <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,25 +56,23 @@ export default function UserMenu({ onAccountSettings }: UserMenuProps) {
           <div className="p-2">
             <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-600">
               <div className="text-sm font-medium text-gray-900 dark:text-white">
-                {user.name || 'User'}
+                {user.given_name && user.family_name ? `${user.given_name} ${user.family_name}` : user.username}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {user.isGuest ? 'Guest Account' : user.email}
+                {user.email || user.username}
               </div>
             </div>
 
             <div className="py-1">
-              {!user.isGuest && (
-                <button
-                  onClick={handleAccountSettings}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Account Settings
-                </button>
-              )}
+              <button
+                onClick={handleAccountSettings}
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Account Settings
+              </button>
 
               <button
                 onClick={() => setIsOpen(false)}

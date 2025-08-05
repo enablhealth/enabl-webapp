@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AccountSettingsModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
     email: user?.email || '',
   });
 
-  if (!isOpen || !user || user.isGuest) return null;
+  if (!isOpen || !user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,13 +129,13 @@ export default function AccountSettingsModal({ isOpen, onClose }: AccountSetting
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">Account Type:</span>
               <span className="text-gray-900 dark:text-white">
-                {user.isGuest ? 'Guest' : 'Registered'}
+                Registered
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">Member Since:</span>
               <span className="text-gray-900 dark:text-white">
-                {user.createdAt.toLocaleDateString()}
+                {user.createdAt?.toLocaleDateString() || 'Unknown'}
               </span>
             </div>
           </div>
