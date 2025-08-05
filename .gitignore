@@ -39,3 +39,44 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Additional ignores for Enabl Health
+# AWS
+.aws/
+
+# Docker
+docker-compose.override.yml
+Dockerfile.prod
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettierrcache
+
+# Temporary folders
+tmp/
+temp/
+
+# Logs
+logs
+*.log
+
+# Local development
+.local
+
+# Storybook
+storybook-static/
+
+# Turborepo
+.turbo
+
+# Sentry
+.sentryclirc
