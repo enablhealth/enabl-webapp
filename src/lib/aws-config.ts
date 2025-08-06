@@ -17,7 +17,7 @@ const awsConfig: ResourcesConfig = {
       identityPoolId: process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID || '',
       loginWith: {
         oauth: {
-          domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN || '',
+          domain: `${process.env.NEXT_PUBLIC_COGNITO_DOMAIN}.auth.${process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1'}.amazoncognito.com`,
           scopes: ['email', 'openid', 'profile'],
           redirectSignIn: [
             process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
@@ -31,7 +31,7 @@ const awsConfig: ResourcesConfig = {
             'https://staging.enabl.health',
             'https://enabl.health'
           ],
-          responseType: 'code'
+          responseType: 'code' as const
         },
         email: true,
         phone: true,
@@ -69,10 +69,37 @@ const awsConfig: ResourcesConfig = {
  */
 export const configureAmplify = () => {
   try {
+    // Debug environment variables
+    console.log('🔍 Environment variables check:');
+    console.log('NEXT_PUBLIC_COGNITO_USER_POOL_ID:', process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID);
+    console.log('NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID:', process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID);
+    console.log('NEXT_PUBLIC_COGNITO_DOMAIN:', process.env.NEXT_PUBLIC_COGNITO_DOMAIN);
+    console.log('NEXT_PUBLIC_AWS_REGION:', process.env.NEXT_PUBLIC_AWS_REGION);
+    console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
+    
+    // Check if required variables are present
+    const requiredVars = [
+      'NEXT_PUBLIC_COGNITO_USER_POOL_ID',
+      'NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID',
+      'NEXT_PUBLIC_AWS_REGION'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    if (missingVars.length > 0) {
+      console.error('❌ Missing required environment variables:', missingVars);
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
+    
     Amplify.configure(awsConfig);
     console.log('✅ AWS Amplify configured successfully');
+    console.log('📋 Config summary:', {
+      userPoolId: awsConfig.Auth?.Cognito?.userPoolId,
+      userPoolClientId: awsConfig.Auth?.Cognito?.userPoolClientId,
+      domain: awsConfig.Auth?.Cognito?.loginWith?.oauth?.domain
+    });
   } catch (error) {
     console.error('❌ Error configuring AWS Amplify:', error);
+    throw error;
   }
 };
 
