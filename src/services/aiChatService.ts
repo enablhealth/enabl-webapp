@@ -42,12 +42,12 @@ class AIChatService {
   private shouldUseMockResponses: boolean;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_AI_API_URL || 'http://localhost:3001/api';
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://xfxzp3poh8.execute-api.us-east-1.amazonaws.com/development';
     this.isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_APP_ENV === 'development';
     
-    // Always use mock responses until we have a real backend API deployed
-    // This includes localhost development and deployed environments
-    this.shouldUseMockResponses = true;
+    // Enable real API calls now that backend is deployed
+    // Only use mock responses for guest users or if API fails
+    this.shouldUseMockResponses = false;
     
     // Log for debugging
     console.log('AIChatService initialized:', {
@@ -70,12 +70,13 @@ class AIChatService {
       messagePreview: request.message.substring(0, 50) + '...'
     });
 
-    // Use mock responses for development, guest users, or when we don't have a real backend
-    if (this.shouldUseMockResponses || request.userId === 'guest') {
-      console.log('✅ Using mock responses');
+    // Use mock responses only for guest users
+    if (request.userId === 'guest') {
+      console.log('✅ Using mock responses for guest user');
       return this.getMockResponse(request);
     }
 
+    // Use real API for authenticated users
     console.log('⚠️ Attempting real API call to:', this.baseUrl);
     try {
       const response = await fetch(`${this.baseUrl}/chat`, {
@@ -88,10 +89,16 @@ class AIChatService {
       });
 
       if (!response.ok) {
-        throw new Error(`AI API error: ${response.status}`);
+        throw new Error(`AI API error: ${response.status} - ${response.statusText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ Real API response received:', {
+        agentType: data.agentType,
+        responsePreview: data.response?.substring(0, 100) + '...'
+      });
+
+      return data;
     } catch (error) {
       console.error('❌ AI Chat Service error:', error);
       // Fallback to mock response if API call fails
@@ -257,8 +264,9 @@ class AIChatService {
    * Get conversation history for a session
    */
   async getConversationHistory(sessionId: string, userId?: string): Promise<ChatMessage[]> {
-    // Return empty history for mock responses or guest users
-    if (this.shouldUseMockResponses || userId === 'guest') {
+    // Return empty history for guest users
+    if (userId === 'guest') {
+      console.log('📚 getConversationHistory: Returning empty array for guest user');
       return [];
     }
 

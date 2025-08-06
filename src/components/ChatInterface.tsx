@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { aiChatService, type AgentType as ServiceAgentType } from '@/services/aiChatService';
 import LoginModal from './LoginModal';
 import UserMenu from './UserMenu';
 import AccountSettingsModal from './AccountSettingsModal';
@@ -223,49 +224,76 @@ export default function ChatInterface() {
     setIsLoading(true);
     setShowChat(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      const agentName = selectedAgent ? agents.find(a => a.id === selectedAgent)?.name : 'Enabl';
-      const selectedModelData = aiModels.find(m => m.id === selectedModel);
-      const modelName = selectedModelData?.name || 'AI Assistant';
+  const handleSendMessage = async () => {
+    if ((!inputValue.trim() && attachedFiles.length === 0) || isLoading) return;
+
+    const newUserMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue || (attachedFiles.length > 0 ? `Sent ${attachedFiles.length} file(s)` : ''),
+      role: 'user',
+      timestamp: new Date(),
+      attachments: attachedFiles.length > 0 ? [...attachedFiles] : undefined,
+    };
+
+    setMessages(prev => [...prev, newUserMessage]);
+    setInputValue('');
+    setAttachedFiles([]);
+    setIsLoading(true);
+    setShowChat(true);
+
+    try {
+      // Map local agent IDs to service agent types
+      const agentMapping: Record<string, ServiceAgentType> = {
+        'personal-assistant': 'health-assistant',
+        'appointment-agent': 'appointment-agent',
+        'community-agent': 'community-agent',
+        'document-agent': 'document-agent'
+      };
+
+      const serviceAgentType = selectedAgent ? agentMapping[selectedAgent] || 'health-assistant' : 'auto';
       
-      // If "Best" is selected, use Amazon Titan under the hood
-      const actualModel = selectedModel === 'best-enabl' ? 'Amazon Titan' : modelName;
-      
-      // Create response message with file acknowledgment
-      let responseContent = `Hello! I'm ${agentName || 'Enabl'} powered by ${actualModel}${selectedModel === 'best-enabl' ? ' (our recommended model)' : ''}.`;
-      
-      if (newUserMessage.attachments && newUserMessage.attachments.length > 0) {
-        const fileNames = newUserMessage.attachments.map(file => file.name).join(', ');
-        responseContent += ` I can see you've shared ${newUserMessage.attachments.length} file(s): ${fileNames}. I can help you analyze these files along with your request.`;
-      }
-      
-      if (newUserMessage.content && newUserMessage.content !== `Sent ${newUserMessage.attachments?.length || 0} file(s)`) {
-        responseContent += ` Regarding your message: "${newUserMessage.content}"`;
-      }
-      
-      responseContent += ' How can I assist you further?';
-      
-      if (user?.isGuest) {
-        responseContent += '\n\n*Note: As a guest, your chat history won\'t be saved. Sign up to keep your conversations!*';
-      }
-      
+      // If files are attached, force document-agent
+      const finalAgentType = attachedFiles.length > 0 ? 'document-agent' : serviceAgentType;
+
+      // Create session ID if not exists
+      const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      const response = await aiChatService.sendMessage({
+        message: inputValue || 'Please analyze the uploaded documents',
+        userId: user?.userId || 'guest',
+        agentType: finalAgentType,
+        sessionId,
+        documentId: attachedFiles.length > 0 ? attachedFiles[0].id : undefined,
+      });
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: responseContent,
+        content: response.response,
         role: 'assistant',
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      setIsLoading(false);
       
       // Save to localStorage if user is authenticated and not a guest
       if (isAuthenticated && !user?.isGuest) {
-        // Here you would normally save to your backend
         console.log('Chat saved for authenticated user');
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'I apologize, but I encountered an error while processing your message. Please try again.',
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
