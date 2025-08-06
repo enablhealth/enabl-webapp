@@ -51,38 +51,13 @@ const awsConfig = {
  */
 export const configureAmplify = () => {
   try {
-    // Debug ALL environment variables to see what's available
-    console.log('🔍 ALL NEXT_PUBLIC environment variables:');
-    Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_')).forEach(key => {
-      console.log(`${key}:`, process.env[key]);
-    });
-    
-    // Debug specific environment variables
-    console.log('🔍 Environment variables check:');
-    console.log('NEXT_PUBLIC_COGNITO_USER_POOL_ID:', process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID);
-    console.log('NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID:', process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID);
-    console.log('NEXT_PUBLIC_COGNITO_DOMAIN:', process.env.NEXT_PUBLIC_COGNITO_DOMAIN);
-    console.log('NEXT_PUBLIC_AWS_REGION:', process.env.NEXT_PUBLIC_AWS_REGION);
-    console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
-    
-    // Check what we're actually using
-    console.log('🔧 Using values:');
-    console.log('userPoolId:', COGNITO_USER_POOL_ID);
-    console.log('userPoolClientId:', COGNITO_USER_POOL_CLIENT_ID);
-    
     if (!COGNITO_USER_POOL_ID || !COGNITO_USER_POOL_CLIENT_ID) {
-      console.error('❌ Still missing Cognito configuration');
-      console.error('📁 Current working directory:', process.cwd());
-      console.error('🗂️ NODE_ENV:', process.env.NODE_ENV);
+      console.error('❌ Missing Cognito configuration');
       throw new Error('Missing Cognito configuration');
     }
     
     Amplify.configure(awsConfig);
     console.log('✅ AWS Amplify configured successfully');
-    console.log('📋 Config summary:', {
-      userPoolId: awsConfig.Auth?.Cognito?.userPoolId,
-      userPoolClientId: awsConfig.Auth?.Cognito?.userPoolClientId
-    });
   } catch (error) {
     console.error('❌ Error configuring AWS Amplify:', error);
     throw error;
