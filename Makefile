@@ -33,4 +33,18 @@ deploy-dev:
 deploy-prod:
 	aws apprunner start-deployment --service-arn $$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-prod`].ServiceArn' --output text)
 
-.PHONY: create-dev-service create-prod-service deploy-dev deploy-prod
+# Quick deployment status check
+status:
+	@./scripts/deploy.sh status
+
+# Check all deployment info
+status-all:
+	@./scripts/deploy.sh all
+
+# Quick force deploy with status check
+deploy-dev-quick: deploy-dev
+	@echo "🕐 Waiting 10 seconds for deployment to start..."
+	@sleep 10
+	@./scripts/deploy.sh status
+
+.PHONY: create-dev-service create-prod-service deploy-dev deploy-prod status status-all deploy-dev-quick
