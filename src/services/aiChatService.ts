@@ -63,11 +63,20 @@ class AIChatService {
    * Send a chat message to the AI agents
    */
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
+    console.log('🚀 AIChatService.sendMessage called with:', {
+      userId: request.userId,
+      agentType: request.agentType,
+      shouldUseMockResponses: this.shouldUseMockResponses,
+      messagePreview: request.message.substring(0, 50) + '...'
+    });
+
     // Use mock responses for development, guest users, or when we don't have a real backend
     if (this.shouldUseMockResponses || request.userId === 'guest') {
+      console.log('✅ Using mock responses');
       return this.getMockResponse(request);
     }
 
+    console.log('⚠️ Attempting real API call to:', this.baseUrl);
     try {
       const response = await fetch(`${this.baseUrl}/chat`, {
         method: 'POST',
@@ -84,9 +93,9 @@ class AIChatService {
 
       return await response.json();
     } catch (error) {
-      console.error('AI Chat Service error:', error);
+      console.error('❌ AI Chat Service error:', error);
       // Fallback to mock response if API call fails
-      console.log('Falling back to mock response...');
+      console.log('🔄 Falling back to mock response...');
       return this.getMockResponse(request);
     }
   }
@@ -102,22 +111,35 @@ class AIChatService {
    * Get mock responses for development
    */
   private async getMockResponse(request: ChatRequest): Promise<ChatResponse> {
-    console.log('Generating mock response for:', { agentType: request.agentType, userId: request.userId, message: request.message.substring(0, 50) + '...' });
+    console.log('🎭 Generating mock response for:', { 
+      agentType: request.agentType, 
+      userId: request.userId, 
+      message: request.message.substring(0, 50) + '...',
+      timestamp: new Date().toISOString()
+    });
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
     const agentType = request.agentType || this.inferAgentType(request.message);
     
-    return {
+    const response: ChatResponse = {
       response: this.generateMockResponse(request.message, agentType),
       agentType,
       sessionId: request.sessionId || `mock-${Date.now()}`,
       citations: this.generateMockCitations(agentType),
       timestamp: new Date().toISOString(),
       routedTo: agentType,
-      routingDecision: request.agentType ? 'explicit' : 'inferred',
+      routingDecision: (request.agentType ? 'explicit' : 'inferred') as 'explicit' | 'inferred',
     };
+
+    console.log('✨ Mock response generated:', {
+      agentType: response.agentType,
+      responsePreview: response.response.substring(0, 100) + '...',
+      sessionId: response.sessionId
+    });
+
+    return response;
   }
 
   /**
