@@ -39,18 +39,32 @@ export interface ChatResponse {
 class AIChatService {
   private baseUrl: string;
   private isDevelopment: boolean;
+  private shouldUseMockResponses: boolean;
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_AI_API_URL || 'http://localhost:3001/api';
-    this.isDevelopment = process.env.NODE_ENV === 'development';
+    this.isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_APP_ENV === 'development';
+    
+    // Always use mock responses until we have a real backend API deployed
+    // This includes localhost development and deployed environments
+    this.shouldUseMockResponses = true;
+    
+    // Log for debugging
+    console.log('AIChatService initialized:', {
+      isDevelopment: this.isDevelopment,
+      shouldUseMockResponses: this.shouldUseMockResponses,
+      NODE_ENV: process.env.NODE_ENV,
+      NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
+      baseUrl: this.baseUrl
+    });
   }
 
   /**
    * Send a chat message to the AI agents
    */
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
-    if (this.isDevelopment) {
-      // Use mock responses during development
+    // Use mock responses for development, guest users, or when we don't have a real backend
+    if (this.shouldUseMockResponses || request.userId === 'guest') {
       return this.getMockResponse(request);
     }
 
@@ -71,7 +85,9 @@ class AIChatService {
       return await response.json();
     } catch (error) {
       console.error('AI Chat Service error:', error);
-      throw new Error('Failed to communicate with AI assistant');
+      // Fallback to mock response if API call fails
+      console.log('Falling back to mock response...');
+      return this.getMockResponse(request);
     }
   }
 
@@ -86,6 +102,8 @@ class AIChatService {
    * Get mock responses for development
    */
   private async getMockResponse(request: ChatRequest): Promise<ChatResponse> {
+    console.log('Generating mock response for:', { agentType: request.agentType, userId: request.userId, message: request.message.substring(0, 50) + '...' });
+    
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
@@ -130,32 +148,41 @@ class AIChatService {
    * Generate mock responses based on agent type
    */
   private generateMockResponse(message: string, agentType: AgentType): string {
-    const responses: Record<Exclude<AgentType, 'auto'>, string[]> = {
-      'health-assistant': [
-        "I understand your health concern. Based on the symptoms you've described, it's important to monitor how you're feeling. If symptoms persist or worsen, I'd recommend consulting with a healthcare professional for proper evaluation.",
-        "Thank you for sharing your health question with me. While I can provide general guidance, please remember that I'm not a substitute for professional medical advice. Here's what I can tell you based on current health guidelines...",
-        "I'm here to help with your health questions. Based on reliable medical sources, here's some information that might be helpful. However, for personalized medical advice, please consult with your healthcare provider.",
-      ],
-      'community-agent': [
-        "I found some interesting recent research and articles that might be relevant to your question. Here are some evidence-based resources from reputable medical institutions...",
-        "Based on current health trends and research, here are some valuable resources and community insights I've curated for you...",
-        "I've searched through recent medical literature and trusted health sources. Here's what the latest research suggests about your topic...",
-      ],
-      'document-agent': [
-        "I've analyzed the document you're referring to. Let me explain what these results typically mean in simple terms, while emphasizing that you should discuss these findings with your healthcare provider...",
-        "Looking at the information in your document, I can help explain the medical terminology and what these values generally indicate. Remember to review these results with your doctor for proper interpretation...",
-        "I can help break down the technical language in your medical document. Here's what these terms and numbers typically mean, though your healthcare provider is the best person to interpret these results in your specific context...",
-      ],
-      'appointment-agent': [
-        "I can help you set up medication reminders and appointment schedules! Let me know when you'd like to be reminded, and I'll make sure you stay on track with your healthcare routine.",
-        "Great! I can help you manage your appointments and medication schedule. Would you like me to set up daily reminders for your medications or schedule follow-up appointment notifications?",
-        "I'm here to help you stay on top of your health appointments and medication routine. I can set reminders, integrate with your calendar, and send you timely notifications to ensure you never miss important healthcare tasks.",
-      ],
-    };
+    const messageLower = message.toLowerCase();
+    
+    // More dynamic responses based on message content
+    if (agentType === 'health-assistant') {
+      if (messageLower.includes('headache') || messageLower.includes('pain')) {
+        return "I understand you're experiencing headaches. This can be caused by various factors including stress, dehydration, lack of sleep, or tension. For persistent headaches, it's important to consult with a healthcare professional. In the meantime, ensure you're staying hydrated, getting adequate rest, and managing stress levels.";
+      }
+      if (messageLower.includes('anxiety') || messageLower.includes('stress')) {
+        return "Anxiety and stress are common concerns that many people face. Some helpful strategies include deep breathing exercises, regular physical activity, maintaining a consistent sleep schedule, and mindfulness practices. If you're experiencing persistent anxiety that interferes with daily life, please consider speaking with a mental health professional.";
+      }
+      if (messageLower.includes('diet') || messageLower.includes('nutrition')) {
+        return "A balanced diet is crucial for overall health. Focus on incorporating plenty of fruits, vegetables, whole grains, lean proteins, and healthy fats. Stay hydrated and try to limit processed foods, excessive sugar, and saturated fats. For personalized dietary advice, consider consulting with a registered dietitian.";
+      }
+      return "Thank you for your health question. I'm here to provide general health information and guidance. While I can offer evidence-based information, please remember that I'm not a substitute for professional medical advice. For specific health concerns, it's always best to consult with your healthcare provider.";
+    }
+    
+    if (agentType === 'appointment-agent') {
+      if (messageLower.includes('medication') || messageLower.includes('pill') || messageLower.includes('medicine')) {
+        return "I can help you set up medication reminders! To create an effective reminder system, I'll need to know: 1) The name of your medication, 2) How often you need to take it, 3) What time(s) of day, and 4) Your preferred reminder method (notification, SMS, or email). This will help ensure you never miss a dose.";
+      }
+      if (messageLower.includes('appointment') || messageLower.includes('doctor') || messageLower.includes('schedule')) {
+        return "I can assist you with appointment scheduling and reminders. I can help you track upcoming appointments, set reminder notifications, and even integrate with your calendar. Would you like me to set up reminders for existing appointments or help you organize your healthcare schedule?";
+      }
+      return "I'm your appointment and medication management assistant. I can help you set up reminders for medications, schedule follow-up appointments, and ensure you stay on track with your healthcare routine. What would you like me to help you organize today?";
+    }
+    
+    if (agentType === 'community-agent') {
+      return `I've searched recent health research and community insights related to your question about "${message.substring(0, 50)}...". Based on current evidence from reputable medical sources, here are some key findings and recommendations from the health community. I can also help you find specific research studies or connect you with relevant health resources.`;
+    }
+    
+    if (agentType === 'document-agent') {
+      return "I'm ready to help analyze your medical documents. I can explain medical terminology, interpret lab results, break down complex medical language, and help you understand what your healthcare documents mean. Please upload your document, and I'll provide a clear, easy-to-understand explanation while reminding you to discuss the results with your healthcare provider.";
+    }
 
-    const effectiveAgentType = agentType === 'auto' ? 'health-assistant' : agentType;
-    const agentResponses = responses[effectiveAgentType];
-    return agentResponses[Math.floor(Math.random() * agentResponses.length)];
+    return "I'm here to help with your health-related questions. How can I assist you today?";
   }
 
   /**
@@ -207,9 +234,9 @@ class AIChatService {
   /**
    * Get conversation history for a session
    */
-  async getConversationHistory(sessionId: string): Promise<ChatMessage[]> {
-    if (this.isDevelopment) {
-      // Return mock conversation history
+  async getConversationHistory(sessionId: string, userId?: string): Promise<ChatMessage[]> {
+    // Return empty history for mock responses or guest users
+    if (this.shouldUseMockResponses || userId === 'guest') {
       return [];
     }
 
