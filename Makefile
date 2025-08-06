@@ -5,6 +5,14 @@
 create-dev-service:
 	aws apprunner create-service \
 		--service-name "enabl-health-dev" \
+		--source-configuration '{"CodeRepository": {"RepositoryUrl": "https://github.com/enablhealth/enabl-webapp", "SourceCodeVersion": {"Type": "BRANCH", "Value": "development"}, "CodeConfiguration": {"ConfigurationSource": "API", "CodeConfigurationValues": {"Runtime": "NODEJS_18", "BuildCommand": "npm ci && npm run build", "StartCommand": "npm start", "Port": "3000", "RuntimeEnvironmentVariables": {"NODE_ENV": "production", "PORT": "3000"}}}}, "AutoDeploymentsEnabled": true, "AuthenticationConfiguration": {"ConnectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30"}}' \
+		--instance-configuration '{"Cpu": "0.25 vCPU", "Memory": "0.5 GB"}' \
+		--region us-east-1
+
+# Alternative: Create with repository config (current approach)
+create-dev-service-repo:
+	aws apprunner create-service \
+		--service-name "enabl-health-dev" \
 		--source-configuration '{"CodeRepository": {"RepositoryUrl": "https://github.com/enablhealth/enabl-webapp", "SourceCodeVersion": {"Type": "BRANCH", "Value": "development"}, "CodeConfiguration": {"ConfigurationSource": "REPOSITORY"}}, "AutoDeploymentsEnabled": true, "AuthenticationConfiguration": {"ConnectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30"}}' \
 		--instance-configuration '{"Cpu": "0.25 vCPU", "Memory": "0.5 GB"}' \
 		--region us-east-1
