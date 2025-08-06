@@ -18,6 +18,7 @@
     "@aws-sdk/client-cognito-identity": "^3.859.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.859.0",
     "aws-amplify": "^6.15.4",
+    "lucide-react": "^0.536.0",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0"

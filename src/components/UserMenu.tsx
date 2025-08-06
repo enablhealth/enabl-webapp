@@ -31,34 +31,34 @@ export default function UserMenu({ onAccountSettings }: UserMenuProps) {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors max-w-[200px]"
       >
         <img
           src={`https://ui-avatars.com/api/?name=${(user.given_name || '') + ' ' + (user.family_name || '')}&background=3b82f6&color=fff`}
           alt={`${user.given_name || ''} ${user.family_name || ''}`}
-          className="w-8 h-8 rounded-full"
+          className="w-8 h-8 rounded-full flex-shrink-0"
         />
-        <div className="text-left hidden sm:block">
-          <div className="text-sm font-medium text-gray-900 dark:text-white">
+        <div className="text-left hidden sm:block min-w-0 flex-1">
+          <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
             {user.given_name && user.family_name ? `${user.given_name} ${user.family_name}` : user.username}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {user.email || user.username}
           </div>
         </div>
-        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isOpen ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"} />
         </svg>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
+        <div className="absolute right-0 bottom-full mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
           <div className="p-2">
             <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-600">
-              <div className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                 {user.given_name && user.family_name ? `${user.given_name} ${user.family_name}` : user.username}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {user.email || user.username}
               </div>
             </div>
