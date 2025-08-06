@@ -27,10 +27,10 @@ create-prod-service:
 
 # Update development service
 deploy-dev:
-	aws apprunner start-deployment --service-arn $(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-dev`].ServiceArn' --output text)
+	aws apprunner start-deployment --service-arn $$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-dev`].ServiceArn' --output text)
 
 # Update production service  
 deploy-prod:
-	aws apprunner start-deployment --service-arn $(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-prod`].ServiceArn' --output text)
+	aws apprunner start-deployment --service-arn $$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-prod`].ServiceArn' --output text)
 
 .PHONY: create-dev-service create-prod-service deploy-dev deploy-prod
