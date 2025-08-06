@@ -612,11 +612,11 @@ export default function ChatInterface() {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-6">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-2xl">E</span>
+              <span className="text-white font-bold text-4xl">e</span>
             </div>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Welcome to <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Enabl</span>
+            Welcome to <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">enabl</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Your AI-powered everyday health assistant. Ask anything or choose an agent below.
