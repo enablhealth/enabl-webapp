@@ -1,87 +1,97 @@
 # API Integration Guide
 
-## Current Status: Mock Responses Only
+## Current Status: Real AWS API Active 🚀
 
-The application is currently configured to use mock responses for all AI chat interactions. This ensures the chat interface works seamlessly across all environments (development, staging, production) without requiring a backend API.
+The application now uses **real AWS Lambda functions** for authenticated users and mock responses for guest users. This provides the best of both worlds - real AI responses for signed-in users and immediate functionality for guests.
 
 ## AI Chat Service Configuration
 
-### Mock Responses (Current)
-- **Status**: ✅ Active
+### Real API Integration (Current) ✅
+- **Status**: ✅ **Active for authenticated users**
 - **Environments**: All (localhost, dev.enabl.health, staging, production)
+- **Guest Users**: Mock responses (immediate functionality)
+- **Authenticated Users**: Real AWS Bedrock AI via Lambda functions
 - **Benefits**: 
-  - No authentication required for guest users
-  - Consistent experience across environments
-  - No external API dependencies
-  - Intelligent agent routing and responses
+  - Real AI responses powered by Amazon Bedrock
+  - Intelligent agent routing with real backend logic
+  - Authentication-based user experience
+  - Fallback to mock responses if API fails
 
-### Real API Integration (Future)
-
-When ready to connect to real AWS Lambda functions:
-
-1. **Update Environment Variables**:
-   ```bash
-   # In production environment
-   NEXT_PUBLIC_AI_API_URL=https://your-api-gateway-url.amazonaws.com/prod
-   ```
-
-2. **Enable Real API Calls**:
-   ```typescript
-   // In aiChatService.ts, change:
-   this.shouldUseMockResponses = true;
-   // To:
-   this.shouldUseMockResponses = false;
-   ```
-
-3. **Backend Requirements**:
-   - Deploy Lambda functions (chat-router, health-assistant, etc.)
-   - Configure API Gateway endpoints
-   - Set up proper CORS headers
-   - Implement authentication flow
+### API Endpoints
+- **Base URL**: `https://xfxzp3poh8.execute-api.us-east-1.amazonaws.com/development`
+- **Chat Endpoint**: `POST /chat`
+- **Conversations**: `GET /conversations/{sessionId}`
 
 ## Lambda Functions Status
 
 ### Deployed ✅
 - `appointment-agent`: Medication reminders and scheduling
-- `chat-router`: Intelligent message routing
+- `chat-router`: Intelligent message routing  
 - Infrastructure: DynamoDB, SNS, SES permissions
+- API Gateway: Configured with proper CORS and authentication
 
-### Pending 🚧
-- `health-assistant`: General health guidance
-- `community-agent`: Research and articles
-- `document-agent`: Medical document analysis
-- API Gateway integration with frontend
+### Integration Details
+- **Authentication**: AWS Cognito tokens required for real API
+- **Guest Mode**: Automatic fallback to enhanced mock responses  
+- **Agent Mapping**:
+  - `personal-assistant` → `health-assistant`
+  - `appointment-agent` → `appointment-agent`
+  - `community-agent` → `community-agent`
+  - `document-agent` → `document-agent`
+
+## User Experience
+
+### Authenticated Users 👤
+- Real AI responses from AWS Bedrock (Claude 3, Amazon Titan)
+- Conversation history saved to DynamoDB
+- Advanced agent capabilities (medication reminders, document analysis)
+- SMS/Email notifications via SNS/SES
+
+### Guest Users 🎭  
+- Enhanced mock responses with intelligent routing
+- Immediate functionality without sign-up
+- Encouragement to sign up for full features
+- No conversation history saved
 
 ## Testing Scenarios
 
-The mock responses currently handle:
+### Real API (Authenticated Users)
+- **Health Questions**: Powered by Amazon Bedrock AI models
+- **Appointment Management**: Real medication reminders and scheduling
+- **Document Analysis**: OCR and medical document interpretation  
+- **Community Research**: Real-time health research and insights
 
-### Health Assistant
-- General health questions
-- Symptom inquiries
-- Nutrition and diet advice
-- Mental health support
+### Mock Responses (Guest Users)
+- **Dynamic Responses**: Context-aware based on user input
+- **Agent Simulation**: Realistic responses for all agent types
+- **File Handling**: Simulated document analysis acknowledgment
+- **Upgrade Prompts**: Encourages sign-up for full features
 
-### Appointment Agent
-- Medication reminder setup
-- Appointment scheduling
-- Healthcare routine management
+## Deployment & Monitoring
 
-### Community Agent
-- Health research queries
-- Latest medical findings
-- Community insights
+### Current Deployment
+- **Frontend**: AWS App Runner with auto-deployment from GitHub
+- **Backend**: AWS Lambda + API Gateway + DynamoDB
+- **Monitoring**: CloudWatch logs for all Lambda functions
+- **Health Checks**: Automatic with fallback to mock responses
 
-### Document Agent
-- Medical document analysis
-- Lab result interpretation
-- Technical language explanation
+### Debugging
+- Console logs track real API calls vs mock responses
+- Authentication flow visible in browser developer tools
+- API Gateway logs available in CloudWatch
+- Error handling with automatic fallback
 
-## Next Steps for Real API
+## Future Enhancements
 
-1. Complete Lambda function deployments
-2. Configure API Gateway with proper endpoints
-3. Update environment variables
-4. Test authentication flow
-5. Enable real API calls
-6. Monitor and debug production integration
+### Phase 1 Complete ✅
+- Real API integration for authenticated users
+- Mock responses for guest users
+- Intelligent agent routing
+- File upload and document analysis
+
+### Phase 2 (Next)
+- Enhanced conversation history with search
+- Real-time notifications (WebSocket)
+- Advanced document analysis with OCR
+- Calendar integration (Google, Apple, Outlook)
+- Multi-modal responses (text, images, charts)
