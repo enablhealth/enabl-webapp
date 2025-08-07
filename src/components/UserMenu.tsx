@@ -52,8 +52,14 @@ export default function UserMenu({ onAccountSettings }: UserMenuProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 bottom-full mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
-          <div className="p-2">
+        <>
+          {/* Invisible overlay to handle click outside */}
+          <div 
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute right-0 bottom-full mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-20">
+            <div className="p-2">
             <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-600">
               <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                 {user.given_name && user.family_name ? `${user.given_name} ${user.family_name}` : user.username}
@@ -106,7 +112,8 @@ export default function UserMenu({ onAccountSettings }: UserMenuProps) {
               </button>
             </div>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

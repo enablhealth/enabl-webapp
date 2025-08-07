@@ -566,19 +566,38 @@ export default function ChatInterface() {
               </button>
               
               {showFileUpload && (
-                <div className="absolute bottom-full left-0 mb-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
-                  <div className="p-4">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                      Upload Files
-                    </h3>
-                    <FileUpload
-                      onFilesSelected={handleFilesSelected}
-                      maxFiles={5}
-                      maxFileSize={10}
-                      disabled={isLoading}
-                    />
+                <>
+                  {/* Invisible overlay to handle click outside */}
+                  <div 
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowFileUpload(false)}
+                  />
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+                      <div className="p-6">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                            Upload Files
+                          </h3>
+                          <button
+                            onClick={() => setShowFileUpload(false)}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        <FileUpload
+                          onFilesSelected={handleFilesSelected}
+                          maxFiles={5}
+                          maxFileSize={10}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 

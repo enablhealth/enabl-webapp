@@ -227,7 +227,7 @@ export default function FileUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200
+          relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200
           ${isDragOver 
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' 
             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-gray-50 dark:bg-gray-700/50'
@@ -237,17 +237,17 @@ export default function FileUpload({
         `}
       >
         {isUploading ? (
-          <div className="flex flex-col items-center space-y-3">
-            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Processing files...</p>
+          <div className="flex flex-col items-center space-y-2">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Processing...</p>
           </div>
         ) : (
           <>
-            <div className="flex flex-col items-center space-y-3">
-              <div className="text-4xl">📎</div>
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-3xl">📎</div>
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {isDragOver ? 'Drop files here' : 'Click to upload or drag and drop'}
+                  {isDragOver ? 'Drop files here' : 'Click to upload or drag & drop'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Up to {maxFiles} files, max {maxFileSize}MB each
@@ -256,9 +256,9 @@ export default function FileUpload({
             </div>
             
             {/* Supported formats */}
-            <div className="mt-4 text-xs text-gray-400 dark:text-gray-500">
-              <p>Supported formats:</p>
-              <p>Images (JPG, PNG, GIF, WebP), PDF, Word, Excel, Text, CSV, JSON, Markdown</p>
+            <div className="mt-3 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-300">
+              <p className="font-medium mb-1">Supported formats:</p>
+              <p>Images, PDF, Word, Excel, Text files</p>
             </div>
           </>
         )}
