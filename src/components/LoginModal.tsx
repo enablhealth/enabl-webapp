@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { signInWithRedirect } from 'aws-amplify/auth';
+import Link from 'next/link';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
@@ -34,6 +36,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setFirstName('');
     setLastName('');
     setPhone('');
+    setAcceptedTerms(false);
     setError('');
     setNeedsConfirmation(false);
     setConfirmationCode('');
@@ -71,6 +74,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         
         if (password.length < 8) {
           setError('Password must be at least 8 characters long');
+          setLoading(false);
+          return;
+        }
+
+        if (!acceptedTerms) {
+          setError('You must agree to the Terms & Policies to create an account');
           setLoading(false);
           return;
         }
@@ -313,13 +322,37 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             </div>
           )}
 
+          {!isLogin && (
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="acceptTerms"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                required={!isLogin}
+              />
+              <label htmlFor="acceptTerms" className="text-sm text-gray-700 dark:text-gray-300">
+                I agree to the{' '}
+                <Link 
+                  href="/terms-and-policies" 
+                  target="_blank"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Terms & Policies
+                </Link>
+                {' '}and acknowledge that I understand the risks and responsibilities associated with using Enabl Health services.
+              </label>
+            </div>
+          )}
+
           {error && (
             <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (!isLogin && !acceptedTerms)}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (isLogin ? 'Signing In...' : 'Creating Account...') : (isLogin ? 'Sign In' : 'Create Account')}

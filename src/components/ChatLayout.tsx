@@ -157,9 +157,14 @@ export default function ChatLayout({
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-6 h-6 text-blue-600" />
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-            Enabl Health
-          </h1>
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+              enablhealth
+            </h1>
+            <span className="px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 rounded-full">
+              BETA
+            </span>
+          </div>
         </div>
         
         <button
@@ -327,6 +332,9 @@ export default function ChatLayout({
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-blue-600" />
             <span className="font-semibold text-gray-900 dark:text-white">Enabl Health</span>
+            <span className="px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 rounded-full">
+              BETA
+            </span>
           </div>
           
           <div className="w-6" /> {/* Spacer for centering */}
