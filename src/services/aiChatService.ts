@@ -42,7 +42,8 @@ class AIChatService {
   private shouldUseMockResponses: boolean;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://xfxzp3poh8.execute-api.us-east-1.amazonaws.com/development';
+    // Use the Agent Router API URL
+    this.baseUrl = process.env.NEXT_PUBLIC_AGENT_ROUTER_URL || 'https://mwfa729td4.execute-api.us-east-1.amazonaws.com/prod';
     this.isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_APP_ENV === 'development';
     
     // Enable real API calls now that backend is deployed
@@ -63,47 +64,58 @@ class AIChatService {
    * Send a chat message to the AI agents
    */
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
-    console.log('🚀 AIChatService.sendMessage called with:', {
-      userId: request.userId,
-      agentType: request.agentType,
-      shouldUseMockResponses: this.shouldUseMockResponses,
-      messagePreview: request.message.substring(0, 50) + '...'
-    });
-
-    // Use mock responses only for guest users
-    if (request.userId === 'guest') {
-      console.log('✅ Using mock responses for guest user');
-      return this.getMockResponse(request);
-    }
-
-    // Use real API for authenticated users
-    console.log('⚠️ Attempting real API call to:', this.baseUrl);
     try {
-      const response = await fetch(`${this.baseUrl}/chat`, {
+      const payload: {
+        message: string;
+        userId: string;
+        agentType: AgentType;
+        sessionId?: string;
+      } = {
+        message: request.message,
+        userId: request.userId || 'guest',
+        agentType: request.agentType || 'health-assistant'
+      };
+
+      if (request.sessionId) {
+        payload.sessionId = request.sessionId;
+      }
+
+      console.log('Sending message to Agent Router:', { payload, url: `${this.baseUrl}/agents` });
+
+      const response = await fetch(`${this.baseUrl}/agents`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await this.getAuthToken()}`,
         },
-        body: JSON.stringify(request),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error(`AI API error: ${response.status} - ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('✅ Real API response received:', {
-        agentType: data.agentType,
-        responsePreview: data.response?.substring(0, 100) + '...'
-      });
+      console.log('Agent Router response:', data);
 
-      return data;
+      // Transform Agent Router response to ChatResponse format
+      return {
+        response: data.response || data.message || 'No response received',
+        agentType: request.agentType || 'health-assistant',
+        sessionId: data.sessionId || request.sessionId || this.generateSessionId(),
+        timestamp: new Date().toISOString(),
+        routedTo: data.routedTo,
+        routingDecision: data.routingDecision || 'explicit'
+      };
     } catch (error) {
-      console.error('❌ AI Chat Service error:', error);
-      // Fallback to mock response if API call fails
-      console.log('🔄 Falling back to mock response...');
-      return this.getMockResponse(request);
+      console.error('Error sending message to Agent Router:', error);
+      
+      // Fallback to mock response if API fails
+      if (this.isDevelopment) {
+        console.log('Falling back to mock response');
+        return this.getMockResponse(request);
+      }
+      
+      throw error;
     }
   }
 
@@ -273,7 +285,7 @@ class AIChatService {
     try {
       const response = await fetch(`${this.baseUrl}/conversations/${sessionId}`, {
         headers: {
-          'Authorization': `Bearer ${await this.getAuthToken()}`,
+          'Content-Type': 'application/json',
         },
       });
 
@@ -286,6 +298,13 @@ class AIChatService {
       console.error('Failed to get conversation history:', error);
       return [];
     }
+  }
+
+  /**
+   * Generate a unique session ID
+   */
+  private generateSessionId(): string {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 

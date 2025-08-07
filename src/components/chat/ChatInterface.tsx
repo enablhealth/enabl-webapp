@@ -29,6 +29,9 @@ interface ChatInterfaceProps {
   className?: string;
   selectedAgent?: AgentType;
   showAgentSelector?: boolean;
+  initialMessages?: ChatMessage[];
+  initialSessionId?: string;
+  onNewMessage?: () => void;
 }
 
 const agentInfo = {
@@ -67,13 +70,16 @@ const agentInfo = {
 export default function ChatInterface({ 
   className = '', 
   selectedAgent = 'auto',
-  showAgentSelector = false
+  showAgentSelector = false,
+  initialMessages = [],
+  initialSessionId = '',
+  onNewMessage
 }: ChatInterfaceProps) {
   const { user, isAuthenticated } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string>(initialSessionId);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [showFileUpload, setShowFileUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -81,6 +87,11 @@ export default function ChatInterface({
 
   // Initialize session
   useEffect(() => {
+    // Don't initialize a new session if we're loading a conversation
+    if (initialMessages.length > 0 && initialSessionId) {
+      return;
+    }
+
     const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setSessionId(newSessionId);
 
@@ -96,7 +107,17 @@ export default function ChatInterface({
     };
 
     setMessages([welcomeMessage]);
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, initialMessages.length, initialSessionId]);
+
+  // Handle changes in initial messages (when loading a conversation)
+  useEffect(() => {
+    if (initialMessages.length > 0) {
+      setMessages(initialMessages);
+    }
+    if (initialSessionId) {
+      setSessionId(initialSessionId);
+    }
+  }, [initialMessages, initialSessionId]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -121,7 +142,7 @@ export default function ChatInterface({
     try {
       const response = await aiChatService.sendMessage({
         message: inputMessage.trim() || 'Please analyze the uploaded documents',
-        userId: user?.userId || 'guest',
+        userId: user?.userId || 'anonymous',
         agentType: uploadedFiles.length > 0 ? 'document-agent' : selectedAgent,
         sessionId,
         documentId: uploadedFiles.length > 0 ? uploadedFiles[0].id : undefined,
@@ -138,6 +159,9 @@ export default function ChatInterface({
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Notify parent component about new message (to refresh recent chats)
+      onNewMessage?.();
       
       // Clear uploaded files after sending
       if (uploadedFiles.length > 0) {

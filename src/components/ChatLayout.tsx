@@ -9,10 +9,12 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useRecentChats } from '@/hooks/useRecentChats';
 import LoginModal from '@/components/LoginModal';
 import UserMenu from '@/components/UserMenu';
 import AccountSettingsModal from '@/components/AccountSettingsModal';
-import { type AgentType } from '@/services/aiChatService';
+import { type AgentType, type ChatMessage } from '@/services/aiChatService';
+import { recentChatsService } from '@/services/recentChatsService';
 import { 
   Brain, 
   Users, 
@@ -23,9 +25,9 @@ import {
   Menu, 
   X, 
   MessageSquare,
-  Settings,
   LogIn,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 
 interface ChatLayoutProps {
@@ -33,6 +35,8 @@ interface ChatLayoutProps {
   selectedAgent: AgentType;
   onAgentChange: (agent: AgentType) => void;
   onNewChat?: () => void;
+  onLoadConversation?: (sessionId: string, messages: ChatMessage[]) => void;
+  refreshKey?: number;
 }
 
 const agentInfo = {
@@ -77,9 +81,12 @@ export default function ChatLayout({
   children, 
   selectedAgent, 
   onAgentChange, 
-  onNewChat 
+  onNewChat,
+  onLoadConversation,
+  refreshKey
 }: ChatLayoutProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { recentChats, isLoading: isLoadingChats, refreshRecentChats, loadConversation } = useRecentChats(user?.userId || null, refreshKey);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
@@ -95,11 +102,53 @@ export default function ChatLayout({
   const handleNewChat = () => {
     onNewChat?.();
     setIsSidebarOpen(false);
+    // Refresh recent chats when starting a new chat
+    if (isAuthenticated) {
+      refreshRecentChats();
+    }
   };
 
   const handleAgentSelect = (agent: AgentType) => {
     onAgentChange(agent);
     setIsSidebarOpen(false);
+  };
+
+  const handleLoadConversation = async (sessionId: string) => {
+    console.log('🔄 handleLoadConversation called with sessionId:', sessionId);
+    console.log('🔄 onLoadConversation exists:', !!onLoadConversation);
+    console.log('🔄 user?.userId:', user?.userId);
+    
+    if (!onLoadConversation || !user?.userId) {
+      console.log('❌ Early return - missing onLoadConversation or userId');
+      return;
+    }
+    
+    try {
+      console.log('🔄 Calling loadConversation...');
+      const conversation = await loadConversation(sessionId);
+      console.log('🔄 loadConversation response:', conversation);
+      
+      if (conversation && conversation.messages.length > 0) {
+        console.log('🔄 Converting messages:', conversation.messages.length);
+        // Convert the conversation messages to the format expected by the chat interface
+        const formattedMessages = conversation.messages.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+          agentType: msg.agent_type as AgentType,
+          sessionId: sessionId
+        }));
+        
+        console.log('🔄 Calling onLoadConversation with formatted messages:', formattedMessages.length);
+        onLoadConversation(sessionId, formattedMessages);
+        setIsSidebarOpen(false);
+      } else {
+        console.log('❌ No conversation data or empty messages');
+      }
+    } catch (error) {
+      console.error('❌ Error loading conversation:', error);
+    }
   };
 
   const SidebarContent = () => (
@@ -151,25 +200,53 @@ export default function ChatLayout({
         </div>
       </div>
 
-      {/* Recent Conversations (Placeholder) */}
+      {/* Recent Conversations */}
       <div className="flex-1 p-4">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
           Recent Chats
         </h2>
         {isAuthenticated ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm cursor-pointer">
-              <MessageSquare className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">Blood pressure questions</span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm cursor-pointer">
-              <MessageSquare className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">Medication reminders setup</span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm cursor-pointer">
-              <MessageSquare className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">Lab results review</span>
-            </div>
+            {isLoadingChats ? (
+              <div className="flex items-center gap-3 px-3 py-2 text-gray-500 dark:text-gray-400 text-sm">
+                <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+                <span>Loading chats...</span>
+              </div>
+            ) : recentChats.length > 0 ? (
+              recentChats.map((chat) => {
+                const agentInfo = recentChatsService.getAgentDisplayInfo(chat.agent_type);
+                const formattedTime = recentChatsService.formatLastActivity(chat.last_message_time);
+                const preview = recentChatsService.formatPreview(chat.preview, 40);
+                
+                return (
+                  <div
+                    key={chat.session_id}
+                    onClick={() => {
+                      console.log('🖱️ Chat item clicked:', chat.session_id);
+                      handleLoadConversation(chat.session_id);
+                    }}
+                    className="flex flex-col gap-1 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm cursor-pointer group transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                      <span className={`text-xs font-medium ${agentInfo.color} dark:opacity-80`}>
+                        {agentInfo.name}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-500 ml-auto">
+                        {formattedTime}
+                      </span>
+                    </div>
+                    <div className="ml-6 text-xs text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 line-clamp-2">
+                      {preview}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                No recent conversations. Start a new chat to begin!
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-sm text-gray-500 dark:text-gray-400">
