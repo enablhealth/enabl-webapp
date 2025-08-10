@@ -402,18 +402,23 @@ test: add unit tests for file upload component
 
 ✅ **Development Environment**: Fully operational
 - **Backend**: `enabl-backend-development` - Successfully deployed
-- **Frontend**: App Runner service required
+- **Frontend**: App Runner service running
+- **URL**: `https://dev.enabl.health`
 - **API**: `https://9zbq4e5m86.execute-api.us-east-1.amazonaws.com/dev/`
 
-✅ **Staging Environment**: Backend operational, frontend pending
+🔄 **Staging Environment**: Backend operational, frontend deploying
 - **Backend**: `enabl-backend-staging` - Successfully deployed  
-- **Frontend**: App Runner service required
+- **Frontend**: App Runner service deploying
+- **URL**: `https://staging.enabl.health` (will be available shortly)
 - **API**: `https://y1rp7krhca.execute-api.us-east-1.amazonaws.com/staging/`
 
-⚠️ **Production Environment**: Resource conflicts require resolution
-- **Backend**: Existing resources need cleanup before deployment
-- **Frontend**: App Runner service required
-- **Status**: Ready for deployment after resource cleanup
+🔄 **Production Environment**: Deploying with CloudFront
+- **Backend**: Ready for deployment
+- **Frontend**: App Runner + CloudFront distribution deploying
+- **URL**: `https://enabl.health` (deploying, 10-15 minutes remaining)
+- **CloudFront**: Distribution `EDBRVZPIVVSJJ` created
+- **SSL**: Certificate issued and configured
+- **DNS**: Route53 configured and propagating
 
 ### Environment Infrastructure
 
