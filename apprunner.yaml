@@ -1,13 +1,10 @@
-# AWS App Runner Configuration for Enabl Health
-# This file enables zero-downtime deployments with minimal configuration
-
 version: 1.0
 runtime: nodejs18
 build:
   commands:
     build:
       - echo "Installing dependencies..."
-      - npm ci
+      - npm ci --production=false
       - echo "Building Next.js application..."
       - npm run build
       - echo "Build completed successfully"
@@ -16,7 +13,18 @@ run:
   command: npm start
   network:
     port: 3000
-    env: PORT
   env:
+    # Production environment variables
     - name: NODE_ENV
-      value: "production"
+      value: production
+    - name: NEXT_PUBLIC_APP_ENV
+      value: production
+    # These will be overridden by App Runner environment variables
+    - name: NEXT_PUBLIC_API_URL
+      value: https://mwfa729td4.execute-api.us-east-1.amazonaws.com/prod
+    - name: NEXT_PUBLIC_COGNITO_USER_POOL_ID
+      value: us-east-1_XXXXXXXX
+    - name: NEXT_PUBLIC_COGNITO_CLIENT_ID  
+      value: XXXXXXXXXXXXXXXXXXXXXXXX
+    - name: NEXT_PUBLIC_COGNITO_DOMAIN
+      value: enabl-health-prod.auth.us-east-1.amazoncognito.com

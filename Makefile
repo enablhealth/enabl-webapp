@@ -17,6 +17,14 @@ create-dev-service-repo:
 		--instance-configuration '{"Cpu": "0.25 vCPU", "Memory": "0.5 GB"}' \
 		--region us-east-1
 
+# Create App Runner service for staging
+create-staging-service:
+	aws apprunner create-service \
+		--service-name "enabl-health-staging" \
+		--source-configuration '{"CodeRepository": {"RepositoryUrl": "https://github.com/enablhealth/enabl-webapp", "SourceCodeVersion": {"Type": "BRANCH", "Value": "main"}, "CodeConfiguration": {"ConfigurationSource": "REPOSITORY"}}, "AutoDeploymentsEnabled": true, "AuthenticationConfiguration": {"ConnectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30"}}' \
+		--instance-configuration '{"Cpu": "0.5 vCPU", "Memory": "1 GB"}' \
+		--region us-east-1
+
 # Create App Runner service for production
 create-prod-service:
 	aws apprunner create-service \
@@ -28,6 +36,10 @@ create-prod-service:
 # Update development service
 deploy-dev:
 	aws apprunner start-deployment --service-arn $$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-dev`].ServiceArn' --output text)
+
+# Update staging service
+deploy-staging:
+	aws apprunner start-deployment --service-arn $$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`enabl-health-staging`].ServiceArn' --output text)
 
 # Update production service  
 deploy-prod:
@@ -47,4 +59,4 @@ deploy-dev-quick: deploy-dev
 	@sleep 10
 	@./scripts/deploy.sh status
 
-.PHONY: create-dev-service create-prod-service deploy-dev deploy-prod status status-all deploy-dev-quick
+.PHONY: create-dev-service create-staging-service create-prod-service deploy-dev deploy-staging deploy-prod status status-all deploy-dev-quick
