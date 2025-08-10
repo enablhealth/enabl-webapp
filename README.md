@@ -198,6 +198,18 @@ The backend infrastructure is managed in a separate repository: [`enabl-backend-
 
 ### Deployment Commands
 
+#### Quick Start with Automated Scripts
+
+```bash
+# Setup staging environment (complete automation)
+./scripts/setup-staging.sh
+
+# Setup production environment (complete automation)
+./scripts/setup-production.sh
+```
+
+#### Manual App Runner Service Management
+
 ```bash
 # Create App Runner services (one-time setup)
 make create-dev-service      # Development
@@ -212,6 +224,34 @@ make deploy-prod             # Force production deployment
 # Check deployment status
 make status                  # Current deployment status
 make status-all             # All environments status
+```
+
+#### Environment Variable Configuration
+
+After creating App Runner services, configure these environment variables in the AWS Console:
+
+**Staging Environment:**
+```bash
+NEXT_PUBLIC_API_URL=https://y1rp7krhca.execute-api.us-east-1.amazonaws.com/staging/
+NEXT_PUBLIC_AI_API_URL=https://rs9kwccdr9.execute-api.us-east-1.amazonaws.com/prod/
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_ex9P9pFRA
+NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=2stjv7o8orrnp9r1sno1k8kgan
+NEXT_PUBLIC_COGNITO_DOMAIN=enabl-auth-staging
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=665236506157-j0kr2dhcms8cvgjcoa27k11mejqn59qf.apps.googleusercontent.com
+NODE_ENV=production
+NEXT_PUBLIC_APP_ENV=staging
+```
+
+**Production Environment:**
+```bash
+NEXT_PUBLIC_API_URL=https://production-api.enabl.health/
+NEXT_PUBLIC_AI_API_URL=https://production-ai-api.enabl.health/
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_PROD_POOL
+NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=production-client-id
+NEXT_PUBLIC_COGNITO_DOMAIN=enabl-auth
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=965402584740-1j4t43ijt0rvlg2lq9hhaots5kg9v2tm.apps.googleusercontent.com
+NODE_ENV=production
+NEXT_PUBLIC_APP_ENV=production
 ```
 
 ## 🔧 Environment Configuration
