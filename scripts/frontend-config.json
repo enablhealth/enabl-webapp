@@ -2,6 +2,25 @@
   "region": "us-east-1",
   "connectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30",
   "environments": {
+    "development": {
+      "serviceName": "enabl-health-dev",
+      "branch": "development",
+      "cpu": "0.25 vCPU",
+      "memory": "0.5 GB",
+      "autoDeploy": true,
+      "customDomain": "dev.enabl.health",
+      "env": {
+        "NODE_ENV": "production",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "NEXT_PUBLIC_APP_ENV": "development",
+        "NEXT_PUBLIC_API_URL": "https://9zbq4e5m86.execute-api.us-east-1.amazonaws.com/dev/",
+        "NEXT_PUBLIC_AI_API_URL": "https://9zbq4e5m86.execute-api.us-east-1.amazonaws.com/dev/",
+        "NEXT_PUBLIC_COGNITO_USER_POOL_ID": "us-east-1_lBBFpwOnU",
+        "NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID": "4rqvopp6dgmre6b18jdmrn7gjc",
+        "NEXT_PUBLIC_COGNITO_DOMAIN": "enabl-auth-dev",
+        "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "842423158981-8ntg57v6hdb365nevu3d4ds9i2j7pooq.apps.googleusercontent.com"
+      }
+    },
     "staging": {
       "serviceName": "enabl-health-staging",
       "branch": "main",
