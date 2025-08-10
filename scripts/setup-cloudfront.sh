@@ -1,85 +1,68 @@
 #!/bin/bash
 
-# Setup Production Environment for Enabl Health
-# This script creates the production App Runner service and CloudFront distribution
+# Create CloudFront Distribution for Enabl Health Production
+# This script creates a CloudFront distribution pointing to App Runner
 
 set -e
 
-echo "🚀 Setting up Enabl Health Production Environment"
-echo "================================================"
+echo "☁️  Setting up CloudFront Distribution for Enabl Health"
+echo "======================================================="
 
-# Check if backend is ready
-echo "🔍 Checking production backend status..."
-BACKEND_STATUS=$(aws apigateway get-rest-apis --query 'items[?name==`enabl-backend-production`].name' --output text 2>/dev/null || echo "")
+# Get App Runner service URL
+echo "🔍 Looking up App Runner service..."
+SERVICE_URL=$(aws apprunner describe-service \
+    --service-arn $(aws apprunner list-services \
+        --region us-east-1 \
+        --query 'ServiceSummaryList[?ServiceName==`enabl-health-prod`].ServiceArn' \
+        --output text) \
+    --query 'Service.ServiceUrl' \
+    --output text 2>/dev/null || echo "")
 
-if [ -z "$BACKEND_STATUS" ]; then
-    echo "⚠️  Production backend not found. Please deploy backend first:"
-    echo "   cd ../enabl-backend-infrastructure"
-    echo "   npx cdk deploy EnablBackendStack-production --require-approval always"
-    echo ""
-    echo "❌ Stopping production frontend setup until backend is ready."
+if [ -z "$SERVICE_URL" ]; then
+    echo "❌ App Runner service 'enabl-health-prod' not found"
+    echo "Please create the App Runner service first:"
+    echo "./scripts/setup-production.sh"
     exit 1
 fi
 
-echo "✅ Production backend found"
+echo "✅ Found App Runner service: $SERVICE_URL"
 
-# Step 1: Create App Runner service for production
-echo "📦 Creating App Runner service for production..."
-SERVICE_ARN=$(aws apprunner create-service \
-    --service-name "enabl-health-prod" \
-    --source-configuration '{
-        "CodeRepository": {
-            "RepositoryUrl": "https://github.com/enablhealth/enabl-webapp",
-            "SourceCodeVersion": {
-                "Type": "BRANCH",
-                "Value": "main"
-            },
-            "CodeConfiguration": {
-                "ConfigurationSource": "REPOSITORY"
-            }
-        },
-        "AutoDeploymentsEnabled": false,
-        "AuthenticationConfiguration": {
-            "ConnectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30"
-        }
-    }' \
-    --instance-configuration '{
-        "Cpu": "1 vCPU",
-        "Memory": "2 GB"
-    }' \
+# Check for existing SSL certificate
+echo "🔍 Looking for SSL certificate..."
+CERT_ARN=$(aws acm list-certificates \
     --region us-east-1 \
-    --query 'Service.ServiceArn' \
+    --query 'CertificateSummaryList[?DomainName==`enabl.health`].CertificateArn' \
     --output text)
 
-echo "✅ Created App Runner service: $SERVICE_ARN"
+if [ -z "$CERT_ARN" ]; then
+    echo "🔐 Requesting SSL certificate..."
+    CERT_ARN=$(aws acm request-certificate \
+        --domain-name enabl.health \
+        --subject-alternative-names "*.enabl.health" \
+        --validation-method DNS \
+        --region us-east-1 \
+        --query 'CertificateArn' \
+        --output text)
+    
+    echo "📜 SSL Certificate requested: $CERT_ARN"
+    echo ""
+    echo "⚠️  IMPORTANT: Please validate the certificate in AWS Console:"
+    echo "   1. Go to: https://console.aws.amazon.com/acm/home?region=us-east-1"
+    echo "   2. Click on the certificate"
+    echo "   3. Add the DNS validation records to Route53"
+    echo "   4. Wait for validation to complete (Status: Issued)"
+    echo ""
+    echo "Press Enter when certificate validation is complete..."
+    read -r
+else
+    echo "✅ Found existing certificate: $CERT_ARN"
+fi
 
-# Step 2: Wait for service to be running
-echo "⏳ Waiting for service to be ready..."
-aws apprunner wait service-running --service-arn $SERVICE_ARN
-
-# Step 3: Get service URL
-SERVICE_URL=$(aws apprunner describe-service \
-    --service-arn $SERVICE_ARN \
-    --query 'Service.ServiceUrl' \
-    --output text)
-
-echo "🌐 App Runner service is running at: https://$SERVICE_URL"
-
-# Step 4: Request SSL certificate
-echo "🔐 Requesting SSL certificate for enabl.health..."
-CERT_ARN=$(aws acm request-certificate \
-    --domain-name enabl.health \
-    --subject-alternative-names "*.enabl.health" \
-    --validation-method DNS \
-    --region us-east-1 \
-    --query 'CertificateArn' \
-    --output text)
-
-echo "📜 SSL Certificate requested: $CERT_ARN"
-
-# Step 5: Create CloudFront distribution
+# Create CloudFront distribution
 echo "☁️  Creating CloudFront distribution..."
-CLOUDFRONT_CONFIG=$(cat <<EOF
+
+# Create distribution config file
+cat > /tmp/cloudfront-config.json << EOF
 {
     "CallerReference": "enabl-production-$(date +%s)",
     "Comment": "Enabl Health Production Distribution",
@@ -100,8 +83,8 @@ CLOUDFRONT_CONFIG=$(cat <<EOF
                 "Forward": "all"
             },
             "Headers": {
-                "Quantity": 4,
-                "Items": ["Authorization", "CloudFront-Forwarded-Proto", "Host", "User-Agent"]
+                "Quantity": 5,
+                "Items": ["Authorization", "CloudFront-Forwarded-Proto", "Host", "User-Agent", "Accept"]
             }
         },
         "TrustedSigners": {
@@ -109,8 +92,8 @@ CLOUDFRONT_CONFIG=$(cat <<EOF
             "Quantity": 0
         },
         "MinTTL": 0,
-        "DefaultTTL": 86400,
-        "MaxTTL": 31536000
+        "DefaultTTL": 3600,
+        "MaxTTL": 86400
     },
     "Origins": {
         "Quantity": 1,
@@ -178,20 +161,9 @@ CLOUDFRONT_CONFIG=$(cat <<EOF
     }
 }
 EOF
-)
-
-# Wait for certificate validation before creating CloudFront
-echo "⏳ Please validate the SSL certificate in AWS Console:"
-echo "   1. Go to Certificate Manager: https://console.aws.amazon.com/acm/home?region=us-east-1"
-echo "   2. Click on the certificate: $CERT_ARN"
-echo "   3. Add the DNS validation records to Route53"
-echo "   4. Wait for validation to complete"
-echo ""
-echo "Press Enter when certificate validation is complete..."
-read -r
 
 DISTRIBUTION_ID=$(aws cloudfront create-distribution \
-    --distribution-config "$CLOUDFRONT_CONFIG" \
+    --distribution-config file:///tmp/cloudfront-config.json \
     --query 'Distribution.Id' \
     --output text)
 
@@ -200,24 +172,16 @@ DISTRIBUTION_DOMAIN=$(aws cloudfront get-distribution \
     --query 'Distribution.DomainName' \
     --output text)
 
-echo "☁️  CloudFront distribution created: $DISTRIBUTION_ID"
+echo "✅ CloudFront distribution created: $DISTRIBUTION_ID"
 echo "🌐 Distribution domain: $DISTRIBUTION_DOMAIN"
 
-# Step 6: Instructions for next steps
+# Clean up temp file
+rm /tmp/cloudfront-config.json
+
 echo ""
 echo "🎯 Next Steps:"
 echo "=============="
-echo "1. Configure environment variables in App Runner console:"
-echo "   https://console.aws.amazon.com/apprunner/home?region=us-east-1#/services"
-echo ""
-echo "   NEXT_PUBLIC_API_URL=https://production-api.enabl.health/"
-echo "   NEXT_PUBLIC_AI_API_URL=https://production-ai-api.enabl.health/"
-echo "   NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_PROD_POOL"
-echo "   NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=production-client-id"
-echo "   NEXT_PUBLIC_COGNITO_DOMAIN=enabl-auth"
-echo "   NEXT_PUBLIC_GOOGLE_CLIENT_ID=965402584740-1j4t43ijt0rvlg2lq9hhaots5kg9v2tm.apps.googleusercontent.com"
-echo "   NODE_ENV=production"
-echo "   NEXT_PUBLIC_APP_ENV=production"
+echo "1. Wait for CloudFront deployment (10-15 minutes)"
 echo ""
 echo "2. Configure DNS in Route53:"
 echo "   aws route53 change-resource-record-sets --hosted-zone-id Z04675923OYMXX09GUGWD --change-batch '{"
@@ -239,4 +203,4 @@ echo "3. Test the production environment:"
 echo "   curl -I https://enabl.health"
 echo ""
 echo "🎉 Production environment will be accessible at: https://enabl.health"
-echo "📊 CloudFront distribution: https://console.aws.amazon.com/cloudfront/home?region=us-east-1#/distributions/$DISTRIBUTION_ID"
+echo "📊 Monitor distribution: https://console.aws.amazon.com/cloudfront/home?region=us-east-1#/distributions/$DISTRIBUTION_ID"
