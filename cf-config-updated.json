@@ -1,0 +1,218 @@
+{
+  "ETag": "E2KOIU9MOGUF5P",
+  "DistributionConfig": {
+    "CallerReference": "enabl-production-1754802906",
+    "Aliases": {
+      "Quantity": 1,
+      "Items": [
+        "enabl.health"
+      ]
+    },
+    "DefaultRootObject": "",
+    "Origins": {
+      "Quantity": 1,
+      "Items": [
+        {
+          "Id": "enabl-app-runner-origin",
+          "DomainName": "gi3e37fuww.us-east-1.awsapprunner.com",
+          "OriginPath": "",
+          "CustomHeaders": {
+            "Quantity": 0
+          },
+          "CustomOriginConfig": {
+            "HTTPPort": 80,
+            "HTTPSPort": 443,
+            "OriginProtocolPolicy": "https-only",
+            "OriginSslProtocols": {
+              "Quantity": 1,
+              "Items": [
+                "TLSv1.2"
+              ]
+            },
+            "OriginReadTimeout": 30,
+            "OriginKeepaliveTimeout": 5
+          },
+          "ConnectionAttempts": 3,
+          "ConnectionTimeout": 10,
+          "OriginShield": {
+            "Enabled": false
+          },
+          "OriginAccessControlId": ""
+        }
+      ]
+    },
+    "OriginGroups": {
+      "Quantity": 0
+    },
+    "DefaultCacheBehavior": {
+      "TargetOriginId": "enabl-app-runner-origin",
+      "TrustedSigners": {
+        "Enabled": false,
+        "Quantity": 0
+      },
+      "TrustedKeyGroups": {
+        "Enabled": false,
+        "Quantity": 0
+      },
+      "ViewerProtocolPolicy": "redirect-to-https",
+      "AllowedMethods": {
+        "Quantity": 7,
+        "Items": [
+          "GET",
+          "HEAD",
+          "OPTIONS",
+          "PUT",
+          "POST",
+          "PATCH",
+          "DELETE"
+        ],
+        "CachedMethods": {
+          "Quantity": 2,
+          "Items": [
+            "HEAD",
+            "GET"
+          ]
+        }
+      },
+      "SmoothStreaming": false,
+      "Compress": false,
+      "LambdaFunctionAssociations": {
+        "Quantity": 0
+      },
+      "FunctionAssociations": {
+        "Quantity": 0
+      },
+      "FieldLevelEncryptionId": "",
+      "GrpcConfig": {
+        "Enabled": false
+      },
+      "ForwardedValues": {
+        "QueryString": true,
+        "Cookies": {
+          "Forward": "all"
+        },
+        "Headers": {
+          "Quantity": 5,
+          "Items": [
+            "Authorization",
+            "Accept",
+            "CloudFront-Forwarded-Proto",
+            "User-Agent",
+            "Host"
+          ]
+        },
+        "QueryStringCacheKeys": {
+          "Quantity": 0
+        }
+      },
+      "MinTTL": 0,
+      "DefaultTTL": 3600,
+      "MaxTTL": 86400,
+      "CachedMethods": {
+        "Items": [
+          "GET",
+          "HEAD"
+        ],
+        "Quantity": 2
+      }
+    },
+    "CacheBehaviors": {
+      "Quantity": 1,
+      "Items": [
+        {
+          "PathPattern": "/api/*",
+          "TargetOriginId": "enabl-app-runner-origin",
+          "TrustedSigners": {
+            "Enabled": false,
+            "Quantity": 0
+          },
+          "TrustedKeyGroups": {
+            "Enabled": false,
+            "Quantity": 0
+          },
+          "ViewerProtocolPolicy": "https-only",
+          "AllowedMethods": {
+            "Quantity": 7,
+            "Items": [
+              "HEAD",
+              "DELETE",
+              "POST",
+              "GET",
+              "OPTIONS",
+              "PUT",
+              "PATCH"
+            ],
+            "CachedMethods": {
+              "Quantity": 2,
+              "Items": [
+                "HEAD",
+                "GET"
+              ]
+            }
+          },
+          "SmoothStreaming": false,
+          "Compress": false,
+          "LambdaFunctionAssociations": {
+            "Quantity": 0
+          },
+          "FunctionAssociations": {
+            "Quantity": 0
+          },
+          "FieldLevelEncryptionId": "",
+          "GrpcConfig": {
+            "Enabled": false
+          },
+          "ForwardedValues": {
+            "QueryString": true,
+            "Cookies": {
+              "Forward": "all"
+            },
+            "Headers": {
+              "Quantity": 1,
+              "Items": [
+                "*"
+              ]
+            },
+            "QueryStringCacheKeys": {
+              "Quantity": 0
+            }
+          },
+          "MinTTL": 0,
+          "DefaultTTL": 0,
+          "MaxTTL": 0
+        }
+      ]
+    },
+    "CustomErrorResponses": {
+      "Quantity": 0
+    },
+    "Comment": "Enabl Health Production Distribution",
+    "Logging": {
+      "Enabled": false,
+      "IncludeCookies": false,
+      "Bucket": "",
+      "Prefix": ""
+    },
+    "PriceClass": "PriceClass_All",
+    "Enabled": true,
+    "ViewerCertificate": {
+      "CloudFrontDefaultCertificate": false,
+      "ACMCertificateArn": "arn:aws:acm:us-east-1:775525057465:certificate/bc631397-b94b-458c-9ce7-e9c5e75644b6",
+      "SSLSupportMethod": "sni-only",
+      "MinimumProtocolVersion": "TLSv1.2_2021",
+      "Certificate": "arn:aws:acm:us-east-1:775525057465:certificate/bc631397-b94b-458c-9ce7-e9c5e75644b6",
+      "CertificateSource": "acm"
+    },
+    "Restrictions": {
+      "GeoRestriction": {
+        "RestrictionType": "none",
+        "Quantity": 0
+      }
+    },
+    "WebACLId": "",
+    "HttpVersion": "http2",
+    "IsIPV6Enabled": true,
+    "ContinuousDeploymentPolicyId": "",
+    "Staging": false
+  }
+}

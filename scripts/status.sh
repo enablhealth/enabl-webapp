@@ -114,15 +114,14 @@ BACKEND_COUNT=$(curl -s -I "https://y1rp7krhca.execute-api.us-east-1.amazonaws.c
 STAGING_SERVICE=$(aws apprunner list-services --region us-east-1 --query 'ServiceSummaryList[?ServiceName==`enabl-health-staging`].ServiceName' --output text 2>/dev/null || echo "")
 
 if [ "$BACKEND_COUNT" -eq 1 ] && [ -n "$STAGING_SERVICE" ]; then
-    echo "🎯 Ready for staging deployment:"
-    echo "   1. Configure environment variables in App Runner console"
-    echo "   2. Set up custom domain: staging.enabl.health"
-    echo "   3. Configure DNS with Route53"
-    echo ""
-    echo "   Run: ./scripts/configure-staging.sh"
+    echo "🎯 Staging service present. Next steps:"
+    echo "   1. Ensure env vars set in App Runner console"
+    echo "   2. Link custom domain: staging.enabl.health"
+    echo "   3. Add Route53 CNAME record"
+    echo "   4. Redeploy if vars changed (make deploy-staging)"
 elif [ "$BACKEND_COUNT" -eq 1 ]; then
     echo "🚀 Ready to create staging App Runner service:"
-    echo "   Run: ./scripts/setup-staging.sh"
+    echo "   Use: ./scripts/frontend-provision.sh --env staging"
 else
     echo "⚠️  Deploy staging backend first:"
     echo "   cd ../enabl-backend-infrastructure"
@@ -130,8 +129,9 @@ else
 fi
 
 echo ""
-echo "🔗 Useful Links:"
-echo "----------------"
+echo "🔗 Useful Links & Tools:"
+echo "------------------------"
+echo "Provision script: scripts/frontend-provision.sh"
 echo "App Runner Console: https://console.aws.amazon.com/apprunner/home?region=us-east-1"
 echo "CloudFront Console: https://console.aws.amazon.com/cloudfront/home"
 echo "Route53 Console: https://console.aws.amazon.com/route53/home"

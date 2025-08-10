@@ -1,38 +1,6 @@
-#!/bin/bash
-
-# Create CloudFront Distribution for Enabl Health Production
-# This script creates a CloudFront distribution pointing to App Runner
-
-set -e
-
-echo "☁️  Setting up CloudFront Distribution for Enabl Health"
-echo "======================================================="
-
-# Get App Runner service URL
-echo "🔍 Looking up App Runner service..."
-SERVICE_URL=$(aws apprunner describe-service \
-    --service-arn $(aws apprunner list-services \
-        --region us-east-1 \
-        --query 'ServiceSummaryList[?ServiceName==`enabl-health-prod`].ServiceArn' \
-        --output text) \
-    --query 'Service.ServiceUrl' \
-    --output text 2>/dev/null || echo "")
-
-if [ -z "$SERVICE_URL" ]; then
-    echo "❌ App Runner service 'enabl-health-prod' not found"
-    echo "Please create the App Runner service first:"
-    echo "./scripts/setup-production.sh"
-    exit 1
-fi
-
-echo "✅ Found App Runner service: $SERVICE_URL"
-
-# Check for existing SSL certificate
-echo "🔍 Looking for SSL certificate..."
-CERT_ARN=$(aws acm list-certificates \
-    --region us-east-1 \
-    --query 'CertificateSummaryList[?DomainName==`enabl.health`].CertificateArn' \
-    --output text)
+#!/usr/bin/env bash
+echo "[removed] setup-cloudfront.sh deprecated. CloudFront handled in frontend-provision.sh (production)." >&2
+exit 1
 
 if [ -z "$CERT_ARN" ]; then
     echo "🔐 Requesting SSL certificate..."

@@ -198,15 +198,17 @@ The backend infrastructure is managed in a separate repository: [`enabl-backend-
 
 ### Deployment Commands
 
-#### Quick Start with Automated Scripts
+#### Service (Re)Creation & Diagnostics
 
 ```bash
-# Setup staging environment (complete automation)
-./scripts/setup-staging.sh
+# Recreate staging & production services (idempotent)
+./scripts/fix-apprunner.sh
 
-# Setup production environment (complete automation)
-./scripts/setup-production.sh
+# Deep diagnostics (status, operations, failure hints)
+./scripts/apprunner-debug.sh
 ```
+
+Legacy scripts removed (setup-staging.sh, setup-production.sh, configure-staging.sh, configure-production-dns.sh, setup-cloudfront.sh) in favor of the unified workflow above.
 
 #### Manual App Runner Service Management
 

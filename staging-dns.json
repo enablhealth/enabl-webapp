@@ -1,0 +1,40 @@
+{
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "staging.enabl.health.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "c7cuwwpdbf.us-east-1.awsapprunner.com " }]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_8fc067d4bf304cc5c1f91f2d99bbed6b.staging.enabl.health.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "_af047fb5cc134970ea9a673e4c1327de.xlfgrmvvlj.acm-validations.aws." }]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_6480cf74b8f0ddb9f1f507f90bde9d46.2a57j77nf17d51at4ovlohuf3wirpo7.staging.enabl.health.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "_c4bd81f5ea0f732627438581a60622d8.xlfgrmvvlj.acm-validations.aws." }]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_e61f896b3deba71e766dc72330c72065.www.staging.enabl.health.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "_5aacbc9886fd4f74d93af5fe774f3d34.xlfgrmvvlj.acm-validations.aws." }]
+      }
+    }
+  ]
+}

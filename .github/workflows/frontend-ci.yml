@@ -1,0 +1,54 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [development, main]
+  pull_request:
+    branches: [development, main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint / Type-check / Build
+        run: npm run ci:verify
+
+      - name: Cache Next build (optional)
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-next-
+
+      - name: Artifact: Build Output
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build-${{ github.sha }}
+          path: .next
+
+  preview-deploy:
+    # Optional preview deployment job stub (extend later for ephemeral previews)
+    if: false # set to always() and implement when preview infra ready
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Preview deploy not yet implemented."

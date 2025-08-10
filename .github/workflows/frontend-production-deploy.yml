@@ -1,0 +1,163 @@
+name: Frontend Production Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type DEPLOY to confirm production deployment"
+        required: true
+      wait:
+        description: "Wait for deployment to finish (true/false)"
+        required: false
+        default: "true"
+      node_version:
+        description: "Node version to use"
+        required: false
+        default: "18"
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  PRODUCTION_SERVICE_NAME: enabl-health-prod
+
+jobs:
+  deploy:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "Confirmation mismatch. Aborting." >&2; exit 1; fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify main is clean (no unmerged commits)
+        run: |
+          if [ "$(git rev-parse HEAD)" != "${GITHUB_SHA}" ]; then
+            echo "HEAD mismatch; expected ${GITHUB_SHA}" >&2; exit 1; fi
+
+      - name: Select Assume Role
+        id: role
+        run: |
+          if [ -n "${AWS_FRONTEND_DEPLOY_ROLE_ARN}" ]; then echo "role=${AWS_FRONTEND_DEPLOY_ROLE_ARN}" >> $GITHUB_OUTPUT; \
+          elif [ -n "${AWS_CDK_DEPLOY_ROLE_ARN}" ]; then echo "role=${AWS_CDK_DEPLOY_ROLE_ARN}" >> $GITHUB_OUTPUT; \
+          else echo "No role ARN secret provided" >&2; exit 1; fi
+        env:
+          AWS_FRONTEND_DEPLOY_ROLE_ARN: ${{ secrets.AWS_FRONTEND_DEPLOY_ROLE_ARN }}
+          AWS_CDK_DEPLOY_ROLE_ARN: ${{ secrets.AWS_CDK_DEPLOY_ROLE_ARN }}
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ steps.role.outputs.role }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ github.event.inputs.node_version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: CI Verify (lint + type-check + build)
+        run: npm run ci:verify
+
+      - name: Capture build artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-build-${{ github.sha }}
+          path: .next
+
+      - name: Resolve Production Service ARN
+        id: svc
+        run: |
+          ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${PRODUCTION_SERVICE_NAME}'].ServiceArn" --output text)
+          if [ -z "$ARN" ] || [ "$ARN" = "None" ]; then echo "Production service not found" >&2; exit 1; fi
+          echo "arn=$ARN" >> $GITHUB_OUTPUT
+
+      - name: Start App Runner Deployment
+        id: start
+        run: |
+          aws apprunner start-deployment --service-arn "${{ steps.svc.outputs.arn }}" >/tmp/deploy.json
+          cat /tmp/deploy.json
+          OPID=$(jq -r '.OperationId' /tmp/deploy.json || true)
+          echo "operation_id=$OPID" >> $GITHUB_OUTPUT
+
+      - name: Wait for Deployment
+        if: ${{ github.event.inputs.wait == 'true' }}
+        run: |
+          echo "Waiting for deployment operation ${{ steps.start.outputs.operation_id }}"
+          for i in $(seq 1 60); do
+            STATUS=$(aws apprunner describe-service --service-arn "${{ steps.svc.outputs.arn }}" --query 'Service.Status' --output text)
+            echo "[$i] Status: $STATUS"
+            case "$STATUS" in
+              RUNNING) echo "Service running"; exit 0 ;;
+              OPERATION_IN_PROGRESS|DEPLOYING|PENDING) sleep 15 ;;
+              CREATE_FAILED|OPERATION_FAILED) echo "Deployment failed" >&2; exit 1 ;;
+              *) sleep 15 ;;
+            esac
+          done
+          echo "Timeout waiting for RUNNING" >&2; exit 1
+
+      - name: Final Service URL
+        run: |
+          URL=$(aws apprunner describe-service --service-arn "${{ steps.svc.outputs.arn }}" --query 'Service.ServiceUrl' --output text)
+          echo "Production Service URL: $URL"
+
+      - name: Summary
+        run: |
+          echo "### Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: ${GITHUB_SHA}" >> $GITHUB_STEP_SUMMARY
+          echo "Service: ${{ steps.svc.outputs.arn }}" >> $GITHUB_STEP_SUMMARY
+          echo "Operation: ${{ steps.start.outputs.operation_id }}" >> $GITHUB_STEP_SUMMARY
+          URL=$(aws apprunner describe-service --service-arn "${{ steps.svc.outputs.arn }}" --query 'Service.ServiceUrl' --output text)
+          echo "Service URL: ${URL}" >> $GITHUB_STEP_SUMMARY
+          echo "Wait Mode: ${{ github.event.inputs.wait }}" >> $GITHUB_STEP_SUMMARY
+          echo "service_url=${URL}" >> $GITHUB_OUTPUT
+    outputs:
+      service-url: ${{ steps.summary.outputs.service_url }}
+
+  slack-notify:
+    name: Slack Notify
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main'
+    env:
+      STATUS: ${{ needs.deploy.result }}
+      COMMIT_SHA: ${{ github.sha }}
+      REPO: ${{ github.repository }}
+      RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Prepare message
+        id: prep
+        run: |
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          if [ "$STATUS" = "success" ]; then ICON=":white_check_mark:"; else ICON=":x:"; fi
+          MSG="${ICON} Prod deploy *$STATUS* for ${REPO}@${SHORT_SHA} | <${RUN_URL}|workflow>"
+          echo "message=$MSG" >> $GITHUB_OUTPUT
+      - name: Send Slack (Webhook or Bot)
+        if: env.STATUS != ''
+        run: |
+          set -e
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"${{ steps.prep.outputs.message }}\"}" "$SLACK_WEBHOOK_URL"
+          elif [ -n "${{ secrets.SLACK_BOT_TOKEN }}" ] && [ -n "${{ secrets.SLACK_CHANNEL_ID }}" ]; then
+            curl -X POST -H 'Authorization: Bearer $SLACK_BOT_TOKEN' -H 'Content-type: application/json; charset=utf-8' \
+              --data "{\"channel\":\"$SLACK_CHANNEL_ID\",\"text\":\"${{ steps.prep.outputs.message }}\"}" https://slack.com/api/chat.postMessage | jq '.ok' | grep true >/dev/null || { echo 'Slack API post failed' >&2; exit 1; }
+          else
+            echo "No Slack secrets present; skipping notification.";
+          fi
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}

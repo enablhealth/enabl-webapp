@@ -1,0 +1,73 @@
+{
+    "Service": {
+        "ServiceName": "enabl-health-prod",
+        "ServiceId": "77eaf8157c3844a783b383f9e9546a30",
+        "ServiceArn": "arn:aws:apprunner:us-east-1:775525057465:service/enabl-health-prod/77eaf8157c3844a783b383f9e9546a30",
+        "ServiceUrl": "gi3e37fuww.us-east-1.awsapprunner.com",
+        "CreatedAt": "2025-08-10T17:19:44+10:00",
+        "UpdatedAt": "2025-08-10T17:19:44+10:00",
+        "Status": "OPERATION_IN_PROGRESS",
+        "SourceConfiguration": {
+            "CodeRepository": {
+                "RepositoryUrl": "https://github.com/enablhealth/enabl-webapp",
+                "SourceCodeVersion": {
+                    "Type": "BRANCH",
+                    "Value": "main"
+                },
+                "CodeConfiguration": {
+                    "ConfigurationSource": "API",
+                    "CodeConfigurationValues": {
+                        "Runtime": "NODEJS_18",
+                        "BuildCommand": "npm ci --no-audit --no-fund && npm run build",
+                        "StartCommand": "npm start",
+                        "Port": "3000",
+                        "RuntimeEnvironmentVariables": {
+                            "NEXT_PUBLIC_AI_API_URL": "https://production-ai-api.enabl.health/",
+                            "NEXT_PUBLIC_API_URL": "https://production-api.enabl.health/",
+                            "NEXT_PUBLIC_APP_ENV": "production",
+                            "NEXT_PUBLIC_APP_URL": "https://enabl.health",
+                            "NEXT_PUBLIC_COGNITO_DOMAIN": "enabl-auth",
+                            "NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID": "2ujfphb9dhu5imkuvq571pllib",
+                            "NEXT_PUBLIC_COGNITO_USER_POOL_ID": "us-east-1_BGGioPbPY",
+                            "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "965402584740-1j4t43ijt0rvlg2lq9hhaots5kg9v2tm.apps.googleusercontent.com",
+                            "NEXT_TELEMETRY_DISABLED": "1",
+                            "NODE_ENV": "production"
+                        }
+                    }
+                },
+                "SourceDirectory": "/"
+            },
+            "AutoDeploymentsEnabled": false,
+            "AuthenticationConfiguration": {
+                "ConnectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30"
+            }
+        },
+        "InstanceConfiguration": {
+            "Cpu": "1024",
+            "Memory": "2048"
+        },
+        "HealthCheckConfiguration": {
+            "Protocol": "TCP",
+            "Path": "/",
+            "Interval": 5,
+            "Timeout": 2,
+            "HealthyThreshold": 1,
+            "UnhealthyThreshold": 5
+        },
+        "AutoScalingConfigurationSummary": {
+            "AutoScalingConfigurationArn": "arn:aws:apprunner:us-east-1:775525057465:autoscalingconfiguration/DefaultConfiguration/1/00000000000000000000000000000001",
+            "AutoScalingConfigurationName": "DefaultConfiguration",
+            "AutoScalingConfigurationRevision": 1
+        },
+        "NetworkConfiguration": {
+            "EgressConfiguration": {
+                "EgressType": "DEFAULT"
+            },
+            "IngressConfiguration": {
+                "IsPubliclyAccessible": true
+            },
+            "IpAddressType": "IPV4"
+        }
+    },
+    "OperationId": "02addc20a9fd4e6188b88187066f1c58"
+}

@@ -1,0 +1,79 @@
+[
+{
+  "name": "enabl-health-staging",
+  "arn": "arn:aws:apprunner:us-east-1:775525057465:service/enabl-health-staging/159c52e10fa74a259b9dbe44495e010f",
+  "status": "CREATE_FAILED",
+  "statusReason": null,
+  "createTime": "2025-08-10T16:30:31+10:00",
+  "updateTime": "2025-08-10T16:30:31+10:00",
+  "serviceUrl": "x2eejkqsqd.us-east-1.awsapprunner.com",
+  "latestDeployment": null,
+  "source": {
+    "CodeRepository": {
+      "RepositoryUrl": "https://github.com/enablhealth/enabl-webapp",
+      "SourceCodeVersion": {
+        "Type": "BRANCH",
+        "Value": "main"
+      },
+      "CodeConfiguration": {
+        "ConfigurationSource": "REPOSITORY"
+      },
+      "SourceDirectory": "/"
+    },
+    "AutoDeploymentsEnabled": true,
+    "AuthenticationConfiguration": {
+      "ConnectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30"
+    }
+  },
+  "operations": [
+    {
+      "Id": "b759704f3cc74a298d4fed8f3286f949",
+      "Type": "CREATE_SERVICE",
+      "Status": "FAILED",
+      "TargetArn": "arn:aws:apprunner:us-east-1:775525057465:service/enabl-health-staging/159c52e10fa74a259b9dbe44495e010f",
+      "StartedAt": "2025-08-10T16:30:31+10:00",
+      "EndedAt": "2025-08-10T16:33:49+10:00",
+      "UpdatedAt": "2025-08-10T16:33:49+10:00"
+    }
+  ]
+}
+,
+{
+  "name": "enabl-health-prod",
+  "arn": "arn:aws:apprunner:us-east-1:775525057465:service/enabl-health-prod/e189885824de4553afd0cedf4792ba2e",
+  "status": "CREATE_FAILED",
+  "statusReason": null,
+  "createTime": "2025-08-10T16:32:02+10:00",
+  "updateTime": "2025-08-10T16:32:02+10:00",
+  "serviceUrl": "imwpc3wpup.us-east-1.awsapprunner.com",
+  "latestDeployment": null,
+  "source": {
+    "CodeRepository": {
+      "RepositoryUrl": "https://github.com/enablhealth/enabl-webapp",
+      "SourceCodeVersion": {
+        "Type": "BRANCH",
+        "Value": "main"
+      },
+      "CodeConfiguration": {
+        "ConfigurationSource": "REPOSITORY"
+      },
+      "SourceDirectory": "/"
+    },
+    "AutoDeploymentsEnabled": false,
+    "AuthenticationConfiguration": {
+      "ConnectionArn": "arn:aws:apprunner:us-east-1:775525057465:connection/enabl-github-connection/7274f1f5f4bc443d90c25916cc77eb30"
+    }
+  },
+  "operations": [
+    {
+      "Id": "0ae7aecf870247728d88f7d5bef22edf",
+      "Type": "CREATE_SERVICE",
+      "Status": "FAILED",
+      "TargetArn": "arn:aws:apprunner:us-east-1:775525057465:service/enabl-health-prod/e189885824de4553afd0cedf4792ba2e",
+      "StartedAt": "2025-08-10T16:32:02+10:00",
+      "EndedAt": "2025-08-10T16:35:22+10:00",
+      "UpdatedAt": "2025-08-10T16:35:22+10:00"
+    }
+  ]
+}
+]

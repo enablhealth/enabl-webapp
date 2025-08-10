@@ -8,12 +8,51 @@
 
 import { Amplify } from 'aws-amplify';
 
-// Temporary hardcoded values for debugging
-const COGNITO_USER_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_lBBFpwOnU';
-const COGNITO_USER_POOL_CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID || '4rqvopp6dgmre6b18jdmrn7gjc';
-const COGNITO_DOMAIN = process.env.NEXT_PUBLIC_COGNITO_DOMAIN || 'enabl-auth-dev';
+// Helper to require critical env vars (avoid accidental prod → dev fallback)
+const must = (name: string, allowFallback = false, fallback?: string) => {
+  const val = process.env[name];
+  if (val && val.trim().length > 0) return val.trim();
+  if (allowFallback && fallback) return fallback;
+  throw new Error(`Missing required environment variable: ${name}`);
+};
+
+const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 const AWS_REGION = process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+// Derive canonical app origin per environment (can still be overridden via NEXT_PUBLIC_APP_URL)
+const inferredOrigin = (() => {
+  switch (APP_ENV) {
+    case 'production':
+      return 'https://enabl.health';
+    case 'staging':
+      return 'https://staging.enabl.health';
+    case 'development':
+    default:
+      return 'https://dev.enabl.health';
+  }
+})();
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || inferredOrigin;
+
+// Critical Cognito settings: no silent dev fallback
+const COGNITO_USER_POOL_ID = must('NEXT_PUBLIC_COGNITO_USER_POOL_ID');
+const COGNITO_USER_POOL_CLIENT_ID = must('NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID');
+const COGNITO_DOMAIN = must('NEXT_PUBLIC_COGNITO_DOMAIN');
+
+// Build redirect arrays: always include current origin; in dev also include localhost convenience
+const redirectBase = [APP_URL];
+if (APP_ENV === 'development') {
+  // Allow local testing explicitly
+  ['http://localhost:3000', 'http://127.0.0.1:3000'].forEach(u => {
+    if (!redirectBase.includes(u)) redirectBase.push(u);
+  });
+}
+
+// Validation guard: prevent production build from accidentally using a *-dev domain
+if (APP_ENV === 'production' && /-dev$/.test(COGNITO_DOMAIN)) {
+  // eslint-disable-next-line no-console
+  console.error('❌ Production build detected dev Cognito domain. Check env vars.');
+  throw new Error('Invalid Cognito domain for production');
+}
 
 const awsConfig = {
   Auth: {
@@ -24,18 +63,8 @@ const awsConfig = {
         oauth: {
           domain: `${COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com`,
           scopes: ['email', 'openid', 'profile'],
-          redirectSignIn: [
-            APP_URL,
-            'https://dev.enabl.health',
-            'https://staging.enabl.health',
-            'https://enabl.health'
-          ],
-          redirectSignOut: [
-            APP_URL,
-            'https://dev.enabl.health',
-            'https://staging.enabl.health',
-            'https://enabl.health'
-          ],
+          redirectSignIn: redirectBase,
+          redirectSignOut: redirectBase,
           responseType: 'code' as const
         },
         email: true,
