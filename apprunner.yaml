@@ -14,17 +14,10 @@ run:
   network:
     port: 3000
   env:
-    # Production environment variables
+    # Runtime configuration via environment variables only
+    # All NEXT_PUBLIC_* variables set via App Runner RuntimeEnvironmentVariables
+    # This follows Copilot instructions for true runtime config, not build-time embedding
     - name: NODE_ENV
       value: production
-    - name: NEXT_PUBLIC_APP_ENV
-      value: production
-    # These will be overridden by App Runner environment variables
-    - name: NEXT_PUBLIC_API_URL
-      value: https://mwfa729td4.execute-api.us-east-1.amazonaws.com/prod
-    - name: NEXT_PUBLIC_COGNITO_USER_POOL_ID
-      value: us-east-1_XXXXXXXX
-    - name: NEXT_PUBLIC_COGNITO_CLIENT_ID  
-      value: XXXXXXXXXXXXXXXXXXXXXXXX
-    - name: NEXT_PUBLIC_COGNITO_DOMAIN
-      value: enabl-health-prod.auth.us-east-1.amazoncognito.com
+    - name: NEXT_TELEMETRY_DISABLED
+      value: "1"
