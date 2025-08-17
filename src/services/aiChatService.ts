@@ -5,6 +5,8 @@
  * Includes mock responses for development and real API calls for production
  */
 
+import { logger } from '../lib/logger';
+
 export type AgentType = 'health-assistant' | 'community-agent' | 'document-agent' | 'appointment-agent' | 'auto';
 
 export interface ChatMessage {
@@ -51,7 +53,7 @@ class AIChatService {
     this.shouldUseMockResponses = false;
     
     // Log for debugging
-    console.log('AIChatService initialized:', {
+    logger.debug('AIChatService initialized:', {
       isDevelopment: this.isDevelopment,
       shouldUseMockResponses: this.shouldUseMockResponses,
       NODE_ENV: process.env.NODE_ENV,

@@ -10,6 +10,7 @@
  */
 
 import { Amplify } from 'aws-amplify';
+import { logger } from './logger';
 
 interface AuthConfig {
   userPoolId: string;
@@ -28,7 +29,7 @@ interface AuthConfig {
 // Server-side configuration loader (mandatory per Copilot instructions)
 const loadConfigFromServer = async (): Promise<AuthConfig | null> => {
   try {
-    console.log('🔄 Loading runtime configuration from server API...');
+    logger.debug('🔄 Loading runtime configuration from server API...');
     
     const response = await fetch('/api/config/auth', {
       cache: 'no-store', // Always get fresh runtime config
@@ -47,7 +48,7 @@ const loadConfigFromServer = async (): Promise<AuthConfig | null> => {
       throw new Error(`Server config error: ${config.message}`);
     }
     
-    console.log('✅ Runtime configuration loaded successfully:', {
+    logger.success('✅ Runtime configuration loaded successfully:', {
       environment: config.appEnv,
       userPoolId: config.userPoolId,
       domain: config.domain,
@@ -57,25 +58,42 @@ const loadConfigFromServer = async (): Promise<AuthConfig | null> => {
     
     return config;
   } catch (error) {
-    console.error('❌ Failed to load runtime configuration:', error);
+    logger.error('❌ Failed to load runtime configuration:', error);
     return null;
   }
 };
 
 // Build Amplify configuration from runtime config (follows Copilot domain strategy)
 const buildAmplifyConfig = (config: AuthConfig) => {
-  // Build redirect arrays: always include current origin; in dev also include localhost convenience
-  const redirectBase = [config.appUrl];
+  // Determine current runtime origin if in browser
+  const currentOrigin =
+    typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : config.appUrl;
+
+  // Build redirect arrays from the actual origin first
+  const redirectBase: string[] = [];
+  const add = (u: string | undefined) => {
+    if (!u) return;
+    if (!redirectBase.includes(u)) redirectBase.push(u);
+  };
+  add(currentOrigin);
+
+  // Environment-specific additions
   if (config.appEnv === 'development') {
-    // Allow local testing explicitly
-    ['http://localhost:3000', 'http://127.0.0.1:3000'].forEach(u => {
-      if (!redirectBase.includes(u)) redirectBase.push(u);
-    });
+    add('http://localhost:3000');
+    add('http://127.0.0.1:3000');
+  } else if (config.appEnv === 'staging') {
+    add('https://staging.enabl.health');
+  } else if (config.appEnv === 'production') {
+    // Allow both apex and www
+    add('https://enabl.health');
+    add('https://www.enabl.health');
   }
 
   // Production validation guard (prevent production build from accidentally using dev domain)
   if (config.appEnv === 'production' && /-dev$/.test(config.domain)) {
-    console.error('❌ Production environment detected with dev Cognito domain:', config.domain);
+    logger.error('❌ Production environment detected with dev Cognito domain:', config.domain);
     throw new Error('Invalid Cognito domain for production environment');
   }
 
@@ -108,7 +126,7 @@ const buildAmplifyConfig = (config: AuthConfig) => {
  */
 export const configureAmplify = async (): Promise<void> => {
   try {
-    console.log('🚀 Initializing AWS Amplify with runtime configuration...');
+    logger.info('🚀 Initializing AWS Amplify with runtime configuration...');
     
     // MANDATORY: Load config from server-side API route (per Copilot instructions)
     const serverConfig = await loadConfigFromServer();
@@ -128,13 +146,13 @@ export const configureAmplify = async (): Promise<void> => {
     // Configure Amplify
     Amplify.configure(amplifyConfig);
     
-    console.log('✅ AWS Amplify configured successfully with runtime configuration');
-    console.log(`📍 Environment: ${serverConfig.appEnv}`);
-    console.log(`🔐 User Pool: ${serverConfig.userPoolId}`);
-    console.log(`🌐 Domain: ${serverConfig.domain}.auth.${serverConfig.region}.amazoncognito.com`);
+    logger.success('✅ AWS Amplify configured successfully with runtime configuration');
+    logger.info(`📍 Environment: ${serverConfig.appEnv}`);
+    logger.info(`🔐 User Pool: ${serverConfig.userPoolId}`);
+    logger.info(`🌐 Domain: ${serverConfig.domain}.auth.${serverConfig.region}.amazoncognito.com`);
     
   } catch (error) {
-    console.error('❌ Critical error configuring AWS Amplify:', error);
+    logger.error('❌ Critical error configuring AWS Amplify:', error);
     throw new Error(`Amplify configuration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };

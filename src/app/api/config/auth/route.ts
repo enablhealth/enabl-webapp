@@ -26,12 +26,15 @@ const getEnvironmentType = (): string => {
     if (cognitoDomain.includes('-staging')) return 'staging';
     if (cognitoDomain === 'enabl-auth') return 'production';
   }
-  
+   
   return appEnv;
 };
 
-// Infer app URL based on environment (follows Copilot domain strategy)
+// Infer app URL based on environment (static, with sensible defaults)
 const inferAppUrl = (env: string): string => {
+  const isLocalDev = process.env.NODE_ENV === 'development' && !process.env.VERCEL;
+  if (isLocalDev) return 'http://localhost:3000';
+
   switch (env) {
     case 'production':
       return 'https://enabl.health';
@@ -52,10 +55,10 @@ export async function GET() {
     const config = {
       userPoolId: requireEnvVar('NEXT_PUBLIC_COGNITO_USER_POOL_ID'),
       userPoolClientId: requireEnvVar('NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID'),
-      domain: requireEnvVar('NEXT_PUBLIC_COGNITO_DOMAIN'),
+    domain: requireEnvVar('NEXT_PUBLIC_COGNITO_DOMAIN'),
       region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
       appEnv: environment,
-      appUrl: process.env.NEXT_PUBLIC_APP_URL || inferAppUrl(environment),
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || inferAppUrl(environment),
       
       // Additional configuration
       apiUrl: process.env.NEXT_PUBLIC_API_URL,
@@ -65,7 +68,7 @@ export async function GET() {
 
     // Production environment validation (prevent dev credentials in prod)
     if (environment === 'production') {
-      if (config.domain.includes('-dev')) {
+    if (config.domain.includes('-dev')) {
         throw new Error('Production environment detected with dev Cognito domain');
       }
       if (config.userPoolId.includes('lBBFpwOnU')) {

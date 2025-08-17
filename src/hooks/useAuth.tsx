@@ -25,6 +25,7 @@ import {
   type ConfirmResetPasswordInput
 } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
+import { logger } from '../lib/logger';
 
 // Types
 export interface AuthUser {
@@ -118,20 +119,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       switch (event) {
         case 'signedIn':
-          console.log('✅ User signed in');
+          logger.success('✅ User signed in');
           refreshUser();
           break;
         case 'signedOut':
-          console.log('👋 User signed out');
+          logger.info('👋 User signed out');
           setUser(null);
           setIsLoading(false);
           break;
         case 'tokenRefresh':
-          console.log('🔄 Token refreshed');
+          logger.debug('🔄 Token refreshed');
           refreshUser();
           break;
         case 'tokenRefresh_failure':
-          console.log('❌ Token refresh failed');
+          logger.warn('❌ Token refresh failed');
           setUser(null);
           break;
         default:
@@ -150,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp: async (input: SignUpInput) => {
       try {
         const result = await signUp(input);
-        console.log('✅ Sign up successful:', result);
+        logger.success('✅ Sign up successful:', result);
         return result;
       } catch (error) {
         console.error('❌ Sign up error:', error);
@@ -161,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn: async (input: SignInInput) => {
       try {
         const result = await signIn(input);
-        console.log('✅ Sign in successful:', result);
+        logger.success('✅ Sign in successful:', result);
         return result;
       } catch (error) {
         console.error('❌ Sign in error:', error);
@@ -172,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       try {
         await signOut();
-        console.log('✅ Sign out successful');
+        logger.success('✅ Sign out successful');
       } catch (error) {
         console.error('❌ Sign out error:', error);
         throw error;
@@ -182,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     confirmSignUp: async (input: ConfirmSignUpInput) => {
       try {
         const result = await confirmSignUp(input);
-        console.log('✅ Sign up confirmation successful:', result);
+        logger.success('✅ Sign up confirmation successful:', result);
         return result;
       } catch (error) {
         console.error('❌ Sign up confirmation error:', error);
@@ -193,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resendSignUpCode: async (username: string) => {
       try {
         const result = await resendSignUpCode({ username });
-        console.log('✅ Resend code successful:', result);
+        logger.success('✅ Resend code successful:', result);
         return result;
       } catch (error) {
         console.error('❌ Resend code error:', error);
@@ -204,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword: async (input: ResetPasswordInput) => {
       try {
         const result = await resetPassword(input);
-        console.log('✅ Reset password successful:', result);
+        logger.success('✅ Reset password successful:', result);
         return result;
       } catch (error) {
         console.error('❌ Reset password error:', error);
@@ -215,7 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     confirmResetPassword: async (input: ConfirmResetPasswordInput) => {
       try {
         const result = await confirmResetPassword(input);
-        console.log('✅ Confirm reset password successful:', result);
+        logger.success('✅ Confirm reset password successful:', result);
         return result;
       } catch (error) {
         console.error('❌ Confirm reset password error:', error);
@@ -227,7 +228,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout: async () => {
       try {
         await signOut();
-        console.log('✅ Logout successful');
+        setUser(null);
+        logger.success('✅ Logout successful');
       } catch (error) {
         console.error('❌ Logout error:', error);
         throw error;
