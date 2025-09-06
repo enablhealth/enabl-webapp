@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import DocumentViewer, { useDocumentViewerKeyboard } from './DocumentViewer';
+import { DocumentRecord } from '@/services/documentStorage';
 
 /**
  * Supported file types for upload
@@ -274,9 +276,15 @@ interface FilePreviewProps {
   file: UploadedFile;
   onRemove: (id: string) => void;
   className?: string;
+  clickable?: boolean; // Whether the file is clickable to view
 }
 
-export function FilePreview({ file, onRemove, className = '' }: FilePreviewProps) {
+export function FilePreview({ file, onRemove, className = '', clickable = false }: FilePreviewProps) {
+  const [showViewer, setShowViewer] = useState(false);
+
+  // Keyboard support for document viewer
+  useDocumentViewerKeyboard(() => setShowViewer(false));
+
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return '🖼️';
     if (type === 'application/pdf') return '📄';
@@ -297,63 +305,121 @@ export function FilePreview({ file, onRemove, className = '' }: FilePreviewProps
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  const handleFileClick = () => {
+    if (clickable) {
+      setShowViewer(true);
+    }
+  };
+
+  // Convert UploadedFile to DocumentRecord for viewer
+  const documentRecord: DocumentRecord | null = clickable ? {
+    userId: 'current-user',
+    documentId: file.id,
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    uploadDate: new Date().toISOString(),
+    s3Key: `temp/${file.id}`,
+    s3Url: file.url || file.preview || '#',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    analysisResult: {
+      documentTypeDetection: {
+        detectedType: 'other',
+        confidence: 0.8,
+        reasoning: 'Recently uploaded file'
+      },
+      medicalRecordPercentage: 50,
+      requiresSignature: false,
+      fields: [],
+      tags: [file.type.split('/')[1] || 'document'],
+      healthcareTags: ['other']
+    }
+  } : null;
+
   return (
-    <div className={`flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 ${className}`}>
-      {/* File preview or icon */}
-      <div className="flex-shrink-0">
-        {file.preview ? (
-          <img
-            src={file.preview}
-            alt={file.name}
-            className="w-10 h-10 object-cover rounded"
-          />
-        ) : (
-          <div className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-600 rounded text-xl">
-            {getFileIcon(file.type)}
-          </div>
-        )}
-      </div>
-
-      {/* File info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-          {file.name}
-        </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {formatFileSize(file.size)}
-        </p>
-        {file.error && (
-          <p className="text-xs text-red-500 dark:text-red-400">
-            {file.error}
-          </p>
-        )}
-      </div>
-
-      {/* Upload progress */}
-      {file.uploadProgress !== undefined && file.uploadProgress < 100 && (
-        <div className="flex-shrink-0 w-20">
-          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${file.uploadProgress}%` }}
-            ></div>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
-            {file.uploadProgress}%
-          </p>
-        </div>
-      )}
-
-      {/* Remove button */}
-      <button
-        onClick={() => onRemove(file.id)}
-        className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-        title="Remove file"
+    <>
+      <div 
+        className={`flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 ${
+          clickable ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors' : ''
+        } ${className}`}
+        onClick={handleFileClick}
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
+        {/* File preview or icon */}
+        <div className="flex-shrink-0">
+          {file.preview ? (
+            <img
+              src={file.preview}
+              alt={file.name}
+              className="w-10 h-10 object-cover rounded"
+            />
+          ) : (
+            <div className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-600 rounded text-xl">
+              {getFileIcon(file.type)}
+            </div>
+          )}
+        </div>
+
+        {/* File info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2">
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              {file.name}
+            </p>
+            {clickable && (
+              <span className="text-xs text-blue-600 dark:text-blue-400">
+                👁️ Click to view
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {formatFileSize(file.size)}
+          </p>
+          {file.error && (
+            <p className="text-xs text-red-500 dark:text-red-400">
+              {file.error}
+            </p>
+          )}
+        </div>
+
+        {/* Upload progress */}
+        {file.uploadProgress !== undefined && file.uploadProgress < 100 && (
+          <div className="flex-shrink-0 w-20">
+            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${file.uploadProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+              {file.uploadProgress}%
+            </p>
+          </div>
+        )}
+
+        {/* Remove button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent triggering file click
+            onRemove(file.id);
+          }}
+          className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+          title="Remove file"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Document Viewer Modal */}
+      {clickable && showViewer && documentRecord && (
+        <DocumentViewer
+          document={documentRecord}
+          isOpen={showViewer}
+          onClose={() => setShowViewer(false)}
+        />
+      )}
+    </>
   );
 }

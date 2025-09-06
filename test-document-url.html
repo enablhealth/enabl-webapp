@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document URL Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .url { background: #f0f0f0; padding: 10px; word-break: break-all; font-family: monospace; }
+        .success { background: #e6ffe6; }
+        .error { background: #ffe6e6; }
+        iframe { width: 100%; height: 400px; border: 1px solid #ccc; margin-top: 10px; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Document URL Testing Tool</h1>
+    
+    <div class="section">
+        <h3>Step 1: Get Signed URL</h3>
+        <button onclick="getSignedUrl()">Get Signed URL for Document</button>
+        <div id="url-result"></div>
+    </div>
+
+    <div class="section">
+        <h3>Step 2: Test Direct URL</h3>
+        <button onclick="testDirectUrl()">Test Direct URL Access</button>
+        <div id="direct-result"></div>
+    </div>
+
+    <div class="section">
+        <h3>Step 3: Test in Iframe</h3>
+        <button onclick="testIframe()">Load in Iframe</button>
+        <div id="iframe-result"></div>
+        <iframe id="test-iframe" style="display: none;"></iframe>
+    </div>
+
+    <script>
+        let currentSignedUrl = '';
+
+        async function getSignedUrl() {
+            const resultDiv = document.getElementById('url-result');
+            resultDiv.innerHTML = 'Getting signed URL...';
+            
+            try {
+                // Use an actual document ID from your system
+                const documentId = '1755751675104rapksp6ed'; // Real document ID from logs
+                const userId = '044864f8-4031-70bc-2df8-56462fbcd601'; // Real user ID from logs
+                
+                const response = await fetch(`/api/documents/${documentId}/view?userId=${encodeURIComponent(userId)}&action=view`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentSignedUrl = data.signedUrl;
+                    
+                    resultDiv.className = 'section success';
+                    resultDiv.innerHTML = `
+                        <h4>✅ Signed URL Retrieved</h4>
+                        <p><strong>Document:</strong> ${data.fileName}</p>
+                        <p><strong>Type:</strong> ${data.fileType}</p>
+                        <p><strong>Expires in:</strong> ${data.expiresIn} seconds</p>
+                        <p><strong>URL Length:</strong> ${currentSignedUrl.length} characters</p>
+                        <div class="url">${currentSignedUrl}</div>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    resultDiv.className = 'section error';
+                    resultDiv.innerHTML = `
+                        <h4>❌ Failed to get signed URL</h4>
+                        <p>Status: ${response.status}</p>
+                        <p>Error: ${errorData.error}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'section error';
+                resultDiv.innerHTML = `<h4>❌ Network Error:</h4><p>${error.message}</p>`;
+            }
+        }
+
+        async function testDirectUrl() {
+            const resultDiv = document.getElementById('direct-result');
+            
+            if (!currentSignedUrl) {
+                resultDiv.innerHTML = 'Please get a signed URL first.';
+                return;
+            }
+            
+            resultDiv.innerHTML = 'Testing direct URL access...';
+            
+            try {
+                // Test with a HEAD request first
+                const response = await fetch(currentSignedUrl, { method: 'HEAD' });
+                
+                if (response.ok) {
+                    resultDiv.className = 'section success';
+                    resultDiv.innerHTML = `
+                        <h4>✅ Direct URL Access Successful</h4>
+                        <p>Status: ${response.status}</p>
+                        <p>Content-Type: ${response.headers.get('content-type')}</p>
+                        <p>Content-Length: ${response.headers.get('content-length')}</p>
+                        <button onclick="window.open('${currentSignedUrl}', '_blank')">Open in New Tab</button>
+                    `;
+                } else {
+                    resultDiv.className = 'section error';
+                    resultDiv.innerHTML = `
+                        <h4>❌ Direct URL Access Failed</h4>
+                        <p>Status: ${response.status}</p>
+                        <p>Status Text: ${response.statusText}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'section error';
+                resultDiv.innerHTML = `<h4>❌ Direct URL Error:</h4><p>${error.message}</p>`;
+            }
+        }
+
+        function testIframe() {
+            const resultDiv = document.getElementById('iframe-result');
+            const iframe = document.getElementById('test-iframe');
+            
+            if (!currentSignedUrl) {
+                resultDiv.innerHTML = 'Please get a signed URL first.';
+                return;
+            }
+            
+            resultDiv.innerHTML = 'Loading in iframe...';
+            iframe.style.display = 'block';
+            
+            // Set up iframe load handlers
+            iframe.onload = function() {
+                resultDiv.className = 'section success';
+                resultDiv.innerHTML = '<h4>✅ Iframe loaded successfully!</h4>';
+            };
+            
+            iframe.onerror = function() {
+                resultDiv.className = 'section error';
+                resultDiv.innerHTML = '<h4>❌ Iframe failed to load</h4>';
+            };
+            
+            // Load the URL in the iframe
+            iframe.src = currentSignedUrl;
+        }
+    </script>
+</body>
+</html>

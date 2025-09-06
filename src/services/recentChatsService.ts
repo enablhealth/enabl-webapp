@@ -98,6 +98,34 @@ class RecentChatsService {
   }
 
   /**
+   * Delete a conversation session for a user
+   */
+  async deleteConversation(sessionId: string, userId: string): Promise<boolean> {
+    if (!userId || userId === 'anonymous' || !sessionId) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/chats/${encodeURIComponent(sessionId)}?userId=${encodeURIComponent(userId)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.error('Failed to delete conversation:', response.status, response.statusText);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      return false;
+    }
+  }
+
+  /**
    * Format the preview text for display
    */
   formatPreview(preview: string, maxLength: number = 50): string {

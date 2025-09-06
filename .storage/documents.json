@@ -1,0 +1,368 @@
+[
+  {
+    "id": "1755679902748txv40ohn3",
+    "name": "0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "type": "application/pdf",
+    "size": 416779,
+    "uploadDate": "2025-08-20T08:51:45.483Z",
+    "url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755679902873-t7umprvwpc.pdf",
+    "smartTags": [
+      {
+        "id": "tag-1755679905482-0",
+        "name": "medical record",
+        "type": "auto",
+        "color": "blue",
+        "confidence": 0.35
+      },
+      {
+        "id": "tag-1755679905483-1",
+        "name": "healthcare",
+        "type": "auto",
+        "color": "blue",
+        "confidence": 0.35
+      },
+      {
+        "id": "tag-1755679905483-unsigned",
+        "name": "Requires Signature",
+        "type": "auto",
+        "color": "red",
+        "confidence": 0.9
+      },
+      {
+        "id": "tag-1755679905483-incomplete",
+        "name": "Incomplete",
+        "type": "auto",
+        "color": "red",
+        "confidence": 0.85
+      },
+      {
+        "id": "tag-1755679905483-date",
+        "name": "August 2025",
+        "type": "auto",
+        "color": "gray",
+        "confidence": 0.99
+      }
+    ],
+    "aiAnalysis": {
+      "summary": "RAG-powered analysis identified this as a medical_record document with 35% confidence. Contains actionable recommendations.",
+      "keyPoints": [
+        "Document type: medical_record",
+        "Confidence: 35%",
+        "Fields completed: 1/8",
+        "Compliance status: incomplete",
+        "Signature status: Requires signature"
+      ],
+      "extractedData": {
+        "File Type": "application/pdf",
+        "Upload Date": "2025-08-20T08:51:45.483Z",
+        "Document Type": "medical_record",
+        "RAG Confidence": "35%",
+        "Analysis Method": "RAG + Bedrock",
+        "Compliance Status": "incomplete",
+        "Fields Status": "1/8",
+        "Processing Time": "404ms"
+      },
+      "category": "other",
+      "confidence": 0.35,
+      "lastAnalyzed": "2025-08-20T08:51:45.482Z"
+    },
+    "folder": "Medical Records",
+    "isFavorite": false,
+    "owner": {
+      "id": "044864f8-4031-70bc-2df8-56462fbcd601",
+      "name": "Google_108126607765883794668",
+      "email": "kc7enriquez@gmail.com"
+    },
+    "permissions": {
+      "canView": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canEdit": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canShare": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "isPublic": false
+    },
+    "s3Url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755679902873-t7umprvwpc.pdf",
+    "s3Key": "documents/0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "savedAt": "2025-08-20T08:51:45.493Z",
+    "version": 1
+  },
+  {
+    "id": "1755678697015eyghvbvjt",
+    "name": "0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "type": "application/pdf",
+    "size": 416779,
+    "uploadDate": "2025-08-20T08:31:39.517Z",
+    "url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755678697116-j34chjcg5ac.pdf",
+    "smartTags": [
+      {
+        "id": "tag-1755678699517-0",
+        "name": "healthcare",
+        "type": "auto",
+        "color": "blue",
+        "confidence": 0.38
+      },
+      {
+        "id": "tag-1755678699517-unsigned",
+        "name": "Requires Signature",
+        "type": "auto",
+        "color": "red",
+        "confidence": 0.9
+      },
+      {
+        "id": "tag-1755678699517-incomplete",
+        "name": "Incomplete",
+        "type": "auto",
+        "color": "red",
+        "confidence": 0.85
+      },
+      {
+        "id": "tag-1755678699517-date",
+        "name": "August 2025",
+        "type": "auto",
+        "color": "gray",
+        "confidence": 0.99
+      }
+    ],
+    "aiAnalysis": {
+      "summary": "RAG-powered analysis identified this as a healthcare document with 38% confidence. Contains actionable recommendations.",
+      "keyPoints": [
+        "Document type: healthcare",
+        "Confidence: 38%",
+        "Fields completed: 1/5",
+        "Compliance status: incomplete",
+        "Signature status: Requires signature"
+      ],
+      "extractedData": {
+        "File Type": "application/pdf",
+        "Upload Date": "2025-08-20T08:31:39.517Z",
+        "Document Type": "healthcare",
+        "RAG Confidence": "38%",
+        "Analysis Method": "RAG + Bedrock",
+        "Compliance Status": "incomplete",
+        "Fields Status": "1/5",
+        "Processing Time": "213ms"
+      },
+      "category": "medical-records",
+      "confidence": 0.38,
+      "lastAnalyzed": "2025-08-20T08:31:39.516Z"
+    },
+    "folder": "Healthcare Documents",
+    "isFavorite": false,
+    "owner": {
+      "id": "044864f8-4031-70bc-2df8-56462fbcd601",
+      "name": "Google_108126607765883794668",
+      "email": "kc7enriquez@gmail.com"
+    },
+    "permissions": {
+      "canView": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canEdit": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canShare": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "isPublic": false
+    },
+    "s3Url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755678697116-j34chjcg5ac.pdf",
+    "s3Key": "documents/0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "savedAt": "2025-08-20T08:31:39.526Z",
+    "version": 1
+  },
+  {
+    "id": "1755678173798gnyc1gmya",
+    "name": "0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "type": "application/pdf",
+    "size": 416779,
+    "uploadDate": "2025-08-20T08:22:57.865Z",
+    "url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755678174136-7y3yx5meudr.pdf",
+    "smartTags": [
+      {
+        "id": "tag-1755678177865-0",
+        "name": "healthcare",
+        "type": "auto",
+        "color": "blue",
+        "confidence": 0.5
+      },
+      {
+        "id": "tag-1755678177865-complete",
+        "name": "Complete",
+        "type": "auto",
+        "color": "green",
+        "confidence": 0.95
+      },
+      {
+        "id": "tag-1755678177865-date",
+        "name": "August 2025",
+        "type": "auto",
+        "color": "gray",
+        "confidence": 0.99
+      }
+    ],
+    "aiAnalysis": {
+      "summary": "RAG-powered analysis identified this as a healthcare document with 50% confidence. Document structure analyzed successfully.",
+      "keyPoints": [
+        "Document type: healthcare",
+        "Confidence: 50%",
+        "Fields completed: 0/0",
+        "Compliance status: unknown",
+        "Signature status: Requires signature"
+      ],
+      "extractedData": {
+        "File Type": "application/pdf",
+        "Upload Date": "2025-08-20T08:22:57.865Z",
+        "Document Type": "healthcare",
+        "RAG Confidence": "50%",
+        "Analysis Method": "RAG + Bedrock",
+        "Compliance Status": "unknown",
+        "Fields Status": "0/0",
+        "Processing Time": "421ms"
+      },
+      "category": "medical-records",
+      "confidence": 0.5,
+      "lastAnalyzed": "2025-08-20T08:22:57.864Z"
+    },
+    "folder": "Healthcare Documents",
+    "isFavorite": false,
+    "owner": {
+      "id": "044864f8-4031-70bc-2df8-56462fbcd601",
+      "name": "Google_108126607765883794668",
+      "email": "kc7enriquez@gmail.com"
+    },
+    "permissions": {
+      "canView": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canEdit": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canShare": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "isPublic": false
+    },
+    "s3Url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755678174136-7y3yx5meudr.pdf",
+    "s3Key": "documents/0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "savedAt": "2025-08-20T08:22:57.887Z",
+    "version": 1
+  },
+  {
+    "id": "1755670895357eg78lrrfp",
+    "name": "0_07-2025_prssrs_tibor-mechtl_432058178_Participant_-_Consent_Form.pdf",
+    "type": "application/pdf",
+    "size": 313996,
+    "uploadDate": "2025-08-20T06:21:40.068Z",
+    "url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755670895461-wenw4ah887o.pdf",
+    "smartTags": [
+      {
+        "id": "tag-1755670900068-date",
+        "name": "August 2025",
+        "type": "auto",
+        "color": "gray",
+        "confidence": 0.99
+      }
+    ],
+    "aiAnalysis": {
+      "summary": "Analyzed document of type other.",
+      "keyPoints": [
+        "Document type: other",
+        "Confidence: 85%",
+        "Ready for review"
+      ],
+      "extractedData": {
+        "File Type": "application/pdf",
+        "Upload Date": "2025-08-20T06:21:40.067Z",
+        "Category": "other",
+        "Regional Context": "General",
+        "Analysis Method": "Filename Only"
+      },
+      "category": "other",
+      "confidence": 0.85,
+      "lastAnalyzed": "2025-08-20T06:21:40.068Z"
+    },
+    "folder": "Uncategorized",
+    "isFavorite": false,
+    "owner": {
+      "id": "044864f8-4031-70bc-2df8-56462fbcd601",
+      "name": "Google_108126607765883794668",
+      "email": "kc7enriquez@gmail.com"
+    },
+    "permissions": {
+      "canView": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canEdit": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canShare": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "isPublic": false
+    },
+    "s3Url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755670895461-wenw4ah887o.pdf",
+    "s3Key": "documents/0_07-2025_prssrs_tibor-mechtl_432058178_Participant_-_Consent_Form.pdf",
+    "savedAt": "2025-08-20T06:21:40.086Z",
+    "version": 1
+  },
+  {
+    "id": "1755669461460b2s149qkz",
+    "name": "0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "type": "application/pdf",
+    "size": 416779,
+    "uploadDate": "2025-08-20T05:57:46.006Z",
+    "url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755669461852-5r1cati1gxu.pdf",
+    "smartTags": [
+      {
+        "id": "tag-1755669466006-date",
+        "name": "August 2025",
+        "type": "auto",
+        "color": "gray",
+        "confidence": 0.99
+      }
+    ],
+    "aiAnalysis": {
+      "summary": "Automatically analyzed document of type other. Content appears to contain relevant medical information.",
+      "keyPoints": [
+        "Document type: other",
+        "Automatically categorized",
+        "Ready for review"
+      ],
+      "extractedData": {
+        "File Type": "application/pdf",
+        "Upload Date": "2025-08-20T05:57:46.005Z",
+        "Category": "other"
+      },
+      "category": "other",
+      "confidence": 0.85,
+      "lastAnalyzed": "2025-08-20T05:57:46.006Z"
+    },
+    "folder": "Uncategorized",
+    "isFavorite": false,
+    "owner": {
+      "id": "044864f8-4031-70bc-2df8-56462fbcd601",
+      "name": "Google_108126607765883794668",
+      "email": "kc7enriquez@gmail.com"
+    },
+    "permissions": {
+      "canView": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canEdit": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "canShare": [
+        "044864f8-4031-70bc-2df8-56462fbcd601"
+      ],
+      "isPublic": false
+    },
+    "s3Url": "https://enabl-user-uploads-dev.s3.us-east-1.amazonaws.com/documents/1755669461852-5r1cati1gxu.pdf",
+    "s3Key": "documents/0_07-2025_prs_tibor-mechtl_432058178_Participant_Handbook.pdf",
+    "savedAt": "2025-08-20T05:57:46.025Z",
+    "version": 1
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "Changes": [{
+    "Action": "UPSERT",
+    "ResourceRecordSet": {
+      "Name": "enabl.health",
+      "Type": "A",
+      "AliasTarget": {
+        "DNSName": "enabl-health-root-redirect.s3-website-us-east-1.amazonaws.com",
+        "EvaluateTargetHealth": false,
+        "HostedZoneId": "Z3AQBSTGFYJSTF"
+      }
+    }
+  }]
+}

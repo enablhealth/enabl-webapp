@@ -1,0 +1,16 @@
+{
+  "CORSRules": [
+    {
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+      "AllowedOrigins": [
+        "http://localhost:3000",
+        "https://dev.enabl.health",
+        "https://staging.enabl.health",
+        "https://enabl.health"
+      ],
+      "ExposeHeaders": ["ETag"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}

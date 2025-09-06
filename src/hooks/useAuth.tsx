@@ -79,19 +79,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const session = await fetchAuthSession();
       
       if (currentUser && session.tokens) {
-        const userAttributes = currentUser.signInDetails?.loginId ? {
+        // Debug: Log the currentUser object to see available properties
+        console.log('🔍 Current user object:', currentUser);
+        console.log('🔍 Session tokens:', session.tokens);
+        
+        // Try to extract email from various possible locations
+        const emailFromLoginId = currentUser.signInDetails?.loginId;
+        const emailFromClaims = session.tokens?.idToken?.payload?.email;
+        const emailFromAccessToken = session.tokens?.accessToken?.payload?.email;
+        
+        console.log('📧 Email candidates:', {
+          loginId: emailFromLoginId,
+          idTokenEmail: emailFromClaims,
+          accessTokenEmail: emailFromAccessToken
+        });
+        
+        // Use the first available email
+        const userEmail = emailFromClaims || emailFromLoginId || emailFromAccessToken;
+        
+        const userAttributes = {
           userId: currentUser.userId,
           username: currentUser.username,
-          email: currentUser.signInDetails.loginId,
-          // Compatibility properties
-          id: currentUser.userId,
-          name: currentUser.username,
-          isGuest: false,
-          avatar: `https://ui-avatars.com/api/?name=${currentUser.username}&background=3b82f6&color=fff`,
-          createdAt: new Date(),
-        } : {
-          userId: currentUser.userId,
-          username: currentUser.username,
+          email: userEmail,
           // Compatibility properties
           id: currentUser.userId,
           name: currentUser.username,
@@ -100,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           createdAt: new Date(),
         };
 
+        console.log('👤 Final user attributes:', userAttributes);
         setUser(userAttributes as AuthUser);
       } else {
         setUser(null);
@@ -161,11 +171,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     signIn: async (input: SignInInput) => {
       try {
-        const result = await signIn(input);
+        // Sanitize username (email) to avoid whitespace issues from copy/paste
+        // Also normalize to lowercase to avoid username/email case mismatches
+        const sanitized = {
+          ...input,
+          username: String(input.username || '')
+            .trim()
+            .toLowerCase(),
+        } as SignInInput;
+        const result = await signIn(sanitized);
         logger.success('✅ Sign in successful:', result);
         return result;
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Sign in error:', error);
+        // Provide clearer guidance for NotAuthorizedException
+        if (error?.name === 'NotAuthorizedException') {
+          const friendly = new Error(
+            'Incorrect email or password. If you just reset your password, wait a few seconds and try again. Ensure the email is correct and lowercase.'
+          );
+          (friendly as any).code = error?.name;
+          throw friendly;
+        }
         throw error;
       }
     },
@@ -193,7 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     resendSignUpCode: async (username: string) => {
       try {
-        const result = await resendSignUpCode({ username });
+        const result = await resendSignUpCode({ username: String(username).trim().toLowerCase() });
         logger.success('✅ Resend code successful:', result);
         return result;
       } catch (error) {
@@ -204,7 +230,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     resetPassword: async (input: ResetPasswordInput) => {
       try {
-        const result = await resetPassword(input);
+        const result = await resetPassword({
+          ...input,
+          username: String(input.username || '').trim().toLowerCase(),
+        });
         logger.success('✅ Reset password successful:', result);
         return result;
       } catch (error) {
@@ -215,7 +244,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     confirmResetPassword: async (input: ConfirmResetPasswordInput) => {
       try {
-        const result = await confirmResetPassword(input);
+        const result = await confirmResetPassword({
+          ...input,
+          username: String(input.username || '').trim().toLowerCase(),
+        });
         logger.success('✅ Confirm reset password successful:', result);
         return result;
       } catch (error) {

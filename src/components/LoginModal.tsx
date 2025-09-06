@@ -12,6 +12,8 @@ interface LoginModalProps {
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [isLogin, setIsLogin] = useState(true);
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetStep, setResetStep] = useState<'request' | 'confirm'>('request');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,11 +22,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
   const [username, setUsername] = useState('');
+  const [resetUsername, setResetUsername] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPasswords, setShowSignupPasswords] = useState(false);
+  const [showResetPasswords, setShowResetPasswords] = useState(false);
 
-  const { signIn, signUp, confirmSignUp, resendSignUpCode } = useAuth();
+  const { signIn, signUp, confirmSignUp, resendSignUpCode, resetPassword, confirmResetPassword } = useAuth();
 
   if (!isOpen) return null;
 
@@ -39,11 +49,79 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setNeedsConfirmation(false);
     setConfirmationCode('');
     setUsername('');
+  setSuccess('');
+    setIsResetMode(false);
+    setResetStep('request');
+    setResetUsername('');
+    setResetCode('');
+    setNewPassword('');
+    setNewPasswordConfirm('');
   };
 
   const switchMode = () => {
     setIsLogin(!isLogin);
     resetForm();
+  };
+
+  const switchToReset = () => {
+    setIsResetMode(true);
+    setResetStep('request');
+    setError('');
+  };
+
+  const handleRequestReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+  const usernameToReset = email.trim().toLowerCase();
+      if (!usernameToReset) {
+        setError('Please enter your email');
+        return;
+      }
+      await resetPassword({ username: usernameToReset });
+      setResetUsername(usernameToReset);
+      setResetStep('confirm');
+    } catch (err: unknown) {
+      console.error('Reset password error:', err);
+      setError(err instanceof Error ? err.message : 'Error requesting password reset');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      if (newPassword.length < 8) {
+        setError('Password must be at least 8 characters long');
+        return;
+      }
+      if (newPassword !== newPasswordConfirm) {
+        setError('Passwords do not match');
+        return;
+      }
+      await confirmResetPassword({
+    username: resetUsername.trim().toLowerCase(),
+        confirmationCode: resetCode,
+        newPassword
+      });
+      // On success, return to sign-in with a success banner
+      setIsResetMode(false);
+      setIsLogin(true);
+  setEmail(resetUsername.trim().toLowerCase());
+      setPassword('');
+      setConfirmPassword('');
+      setSuccess('Password updated. Please sign in with your new password.');
+    } catch (err: unknown) {
+      console.error('Confirm reset password error:', err);
+      setError(err instanceof Error ? err.message : 'Error resetting password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,8 +131,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     try {
       if (isLogin) {
+        const cleanEmail = email.trim().toLowerCase();
         const result = await signIn({
-          username: email,
+          username: cleanEmail,
           password: password
         });
         
@@ -76,12 +155,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           return;
         }
 
+  const cleanEmail = email.trim().toLowerCase();
         const result = await signUp({
-          username: email,
+          username: cleanEmail,
           password: password,
           options: {
             userAttributes: {
-              email: email,
+              email: cleanEmail,
               given_name: firstName,
               family_name: lastName,
               ...(phone && { phone_number: phone })
@@ -91,7 +171,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         if ((result as { nextStep?: { signUpStep?: string } })?.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
           setNeedsConfirmation(true);
-          setUsername(email);
+          setUsername(cleanEmail);
         }
       }
     } catch (err: unknown) {
@@ -109,13 +189,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     try {
       await confirmSignUp({
-        username: username,
+        username: username.trim().toLowerCase(),
         confirmationCode: confirmationCode
       });
       
       // Auto sign in after confirmation
       await signIn({
-        username: username,
+        username: username.trim().toLowerCase(),
         password: password
       });
       
@@ -218,6 +298,154 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     );
   }
 
+  if (isResetMode) {
+    return (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {resetStep === 'request' ? 'Forgot your password?' : 'Set a new password'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+          {resetStep === 'request' ? (
+            <form onSubmit={handleRequestReset} className="space-y-4">
+              <p className="text-gray-600 dark:text-gray-400">
+                Enter the email associated with your account and we’ll send a verification code.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? 'Sending...' : 'Send code'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setIsResetMode(false); setIsLogin(true); setError(''); }}
+                className="w-full text-blue-600 dark:text-blue-400 text-sm hover:underline"
+              >
+                Back to sign in
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleConfirmReset} className="space-y-4">
+              <p className="text-gray-600 dark:text-gray-400">
+                We sent a code to <strong>{resetUsername}</strong>. Enter it below with your new password.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Verification Code
+                </label>
+                <input
+                  type="text"
+                  value={resetCode}
+                  onChange={(e) => setResetCode(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  placeholder="Enter 6-digit code"
+                  required
+                  maxLength={6}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  New Password
+                </label>
+                <input
+                  type={showResetPasswords ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  required
+                  minLength={8}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Confirm New Password
+                </label>
+                <input
+                  type={showResetPasswords ? 'text' : 'password'}
+                  value={newPasswordConfirm}
+                  onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  required
+                  minLength={8}
+                />
+                <label className="mt-2 inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <input type="checkbox" checked={showResetPasswords} onChange={(e) => setShowResetPasswords(e.target.checked)} />
+                  Show passwords
+                </label>
+              </div>
+
+              {error && (
+                <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? 'Updating...' : 'Update password'}
+              </button>
+
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={async () => { try { setLoading(true); setError(''); await resetPassword({ username: resetUsername }); } catch (e: any) { setError(e?.message || 'Error resending code'); } finally { setLoading(false); } }}
+                  className="text-blue-600 dark:text-blue-400 text-sm hover:underline"
+                >
+                  Resend code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsResetMode(false); setIsLogin(true); setError(''); }}
+                  className="text-blue-600 dark:text-blue-400 text-sm hover:underline"
+                >
+                  Back to sign in
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
@@ -241,6 +469,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {success && (
+            <div className="text-green-700 bg-green-50 border border-green-200 dark:text-green-300 dark:bg-green-900/20 dark:border-green-800 text-sm p-3 rounded">
+              {success}
+            </div>
+          )}
           {!isLogin && (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -303,13 +536,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               Password
             </label>
             <input
-              type="password"
+              type={showLoginPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
               required
               minLength={8}
             />
+            {isLogin && (
+              <label className="mt-2 inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                <input type="checkbox" checked={showLoginPassword} onChange={(e) => setShowLoginPassword(e.target.checked)} />
+                Show password
+              </label>
+            )}
           </div>
 
           {!isLogin && (
@@ -318,13 +557,17 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 Confirm Password
               </label>
               <input
-                type="password"
+                type={showSignupPasswords ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 required={!isLogin}
                 minLength={8}
               />
+              <label className="mt-2 inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                <input type="checkbox" checked={showSignupPasswords} onChange={(e) => setShowSignupPasswords(e.target.checked)} />
+                Show passwords
+              </label>
             </div>
           )}
 
@@ -364,6 +607,16 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </form>
 
         <div className="mt-6 text-center">
+          {isLogin && (
+            <div className="mb-3">
+              <button
+                onClick={switchToReset}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
           <button
             onClick={switchMode}
             className="text-blue-600 dark:text-blue-400 hover:underline"

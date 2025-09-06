@@ -1,0 +1,18 @@
+# Enabl Health - development Environment Configuration
+# Copy these values to your .env.local file
+
+NEXT_PUBLIC_API_URL=https://4k9ooct3ng.execute-api.us-east-1.amazonaws.com/prod/
+NEXT_PUBLIC_AI_API_URL=https://w0232qpqv7.execute-api.us-east-1.amazonaws.com/prod/
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_lBBFpwOnU
+NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=4rqvopp6dgmre6b18jdmrn7gjc
+NEXT_PUBLIC_OPENSEARCH_ENDPOINT=https://w738q75no0s31fix3bwf.us-east-1.aoss.amazonaws.com
+NEXT_PUBLIC_DOCUMENTS_BUCKET=enabl-documents-development-775525057465
+NEXT_PUBLIC_KNOWLEDGE_BASE_BUCKET=enabl-knowledge-base-development-775525057465
+NEXT_PUBLIC_APP_ENV=development
+NODE_ENV=production
+
+# Knowledge Base Setup (Manual)
+# Use the following values to create Bedrock Knowledge Base manually:
+# - Role ARN: arn:aws:iam::775525057465:role/EnablHealthStack-developm-KnowledgeBaseRoleA2B317B9-L46lz6qWn40o
+# - Collection ARN: (from OpenSearch Console)
+# - Index Name: enabl-health-index

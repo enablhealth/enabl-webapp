@@ -545,6 +545,7 @@ export default function ChatInterface() {
                     file={file}
                     onRemove={handleRemoveFile}
                     className="text-sm"
+                    clickable={true}
                   />
                 ))}
               </div>
@@ -690,6 +691,7 @@ export default function ChatInterface() {
                     file={file}
                     onRemove={handleRemoveFile}
                     className="text-sm"
+                    clickable={true}
                   />
                 ))}
               </div>

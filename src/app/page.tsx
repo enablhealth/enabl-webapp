@@ -50,6 +50,7 @@ export default function Home() {
     >
       <ChatInterface 
         selectedAgent={selectedAgent}
+        onAgentChange={setSelectedAgent}
         className="h-full"
         initialMessages={currentMessages}
         initialSessionId={currentSessionId}

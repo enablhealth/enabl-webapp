@@ -15,6 +15,7 @@ export interface UseRecentChatsReturn {
   error: string | null;
   refreshRecentChats: () => Promise<void>;
   loadConversation: (sessionId: string) => Promise<ConversationResponse | null>;
+  deleteConversation: (sessionId: string) => Promise<boolean>;
 }
 
 export function useRecentChats(userId: string | null, refreshKey?: number): UseRecentChatsReturn {
@@ -58,6 +59,18 @@ export function useRecentChats(userId: string | null, refreshKey?: number): UseR
     }
   }, [userId]);
 
+  const deleteConversation = useCallback(async (sessionId: string): Promise<boolean> => {
+    if (!userId || userId === 'anonymous' || !sessionId) {
+      return false;
+    }
+    const ok = await recentChatsService.deleteConversation(sessionId, userId);
+    if (ok) {
+      // Optimistically remove from local state for snappier UX
+      setRecentChats((prev) => prev.filter((c) => c.session_id !== sessionId));
+    }
+    return ok;
+  }, [userId]);
+
   // Load recent chats when userId changes or refreshKey changes
   useEffect(() => {
     refreshRecentChats();
@@ -68,6 +81,7 @@ export function useRecentChats(userId: string | null, refreshKey?: number): UseR
     isLoading,
     error,
     refreshRecentChats,
-    loadConversation,
+  loadConversation,
+  deleteConversation,
   };
 }
